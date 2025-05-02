@@ -10,7 +10,7 @@ export const API_CONFIG = {
 export const ENDPOINTS = {
   auth: {
     login: '/users/login',
-    register: '/users/register',
+    register: '/users/postUser',
     logout: '/users/logout',
   },
   user: {

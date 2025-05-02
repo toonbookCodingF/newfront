@@ -11,6 +11,7 @@ interface FormFieldProps {
     secureTextEntry?: boolean;
     keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
     autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+    placeholder?: string;
 }
 
 export const FormField: React.FC<FormFieldProps> = ({
@@ -21,6 +22,7 @@ export const FormField: React.FC<FormFieldProps> = ({
     secureTextEntry,
     keyboardType = 'default',
     autoCapitalize = 'none',
+    placeholder,
 }) => {
     return (
         <View style={styles.container}>
@@ -32,6 +34,7 @@ export const FormField: React.FC<FormFieldProps> = ({
                 secureTextEntry={secureTextEntry}
                 keyboardType={keyboardType}
                 autoCapitalize={autoCapitalize}
+                placeholder={placeholder}
             />
         </View>
     );

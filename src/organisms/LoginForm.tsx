@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
@@ -40,29 +40,40 @@ export const LoginForm: React.FC = () => {
     }
   };
 
+  const handleNavigateToRegister = () => {
+    navigation.navigate('Auth', { screen: 'Register' });
+  };
+
   return (
     <View style={styles.container}>
-      <Text variant="title" style={styles.title}>Connexion</Text>
+      <View style={styles.titleContainer}>
+        <Text variant="title" style={styles.title}>Connexion</Text>
+      </View>
       <FormField
         label="Email"
         value={email}
         onChangeText={setEmail}
         keyboardType="email-address"
         autoCapitalize="none"
-        error={error}
+        error={error || undefined}
       />
       <FormField
         label="Mot de passe"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
-        error={error}
+        error={error || undefined}
       />
       <Button
         title={isLoading ? "Connexion..." : "Se connecter"}
         onPress={handleLogin}
         disabled={isLoading}
       />
+      <View style={styles.registerLinkContainer}>
+        <TouchableOpacity onPress={handleNavigateToRegister}>
+          <Text style={styles.registerText}>Pas encore de compte ? S'inscrire</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -72,8 +83,19 @@ const styles = StyleSheet.create({
     padding: 20,
     width: '100%',
   },
+  titleContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
   title: {
     textAlign: 'center',
-    marginBottom: 24,
+  },
+  registerLinkContainer: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  registerText: {
+    color: '#007AFF',
+    textDecorationLine: 'underline',
   },
 }); 
