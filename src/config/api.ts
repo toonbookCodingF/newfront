@@ -9,12 +9,12 @@ export const API_CONFIG = {
 
 export const ENDPOINTS = {
   auth: {
-    login: '/auth/login',
-    register: '/auth/register',
-    logout: '/auth/logout',
+    login: '/users/login',
+    register: '/users/register',
+    logout: '/users/logout',
   },
   user: {
-    profile: '/user/profile',
-    update: '/user/update',
+    profile: '/users/profile',
+    update: '/users/update',
   },
 }; 
