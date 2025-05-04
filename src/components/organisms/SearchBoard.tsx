@@ -1,12 +1,11 @@
 import React from 'react';
-import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
-import { SearchBar } from '../atoms/SearchBar';
-import { SearchList } from '../molecules/SearchList';
-import { Book } from '../../services/api/books';
+import { BookList } from '../molecules/BookList';
 import { useSearch } from '../../hooks/useSearch';
+import { Book } from '../../services/api/books';
 
 type SearchBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -16,16 +15,13 @@ export const SearchBoard: React.FC = () => {
 
   const goToOeuvrePage = (book: Book) => {
     navigation.navigate('OeuvrePage', {
-      id: book.id,
-      title: book.title,
-      description: book.description,
-      cover: book.coverimage || '',
+      id: book.id
     });
   };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
@@ -33,7 +29,7 @@ export const SearchBoard: React.FC = () => {
 
   if (error) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.container}>
         <Text style={styles.errorText}>{error}</Text>
       </View>
     );
@@ -41,12 +37,10 @@ export const SearchBoard: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <SearchBar
-        value={searchQuery}
-        onChangeText={handleSearch}
-        placeholder="Rechercher un livre..."
+      <BookList 
+        books={filteredBooks} 
+        onBookPress={goToOeuvrePage}
       />
-      <SearchList books={filteredBooks} onBookPress={goToOeuvrePage} />
     </View>
   );
 };
@@ -56,14 +50,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#A020F0',
   },
-  loadingContainer: {
+  loaderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#A020F0',
   },
   errorText: {
-    color: '#fff',
-    fontSize: 16,
+    color: 'red',
+    fontSize: 18,
+    textAlign: 'center',
   },
 }); 

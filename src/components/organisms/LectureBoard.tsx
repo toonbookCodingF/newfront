@@ -1,11 +1,13 @@
 import React from 'react';
-import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { BookList } from '../molecules/BookList';
-import { Book } from '../../services/api/books';
 import { useBooks } from '../../hooks/useBooks';
+import { Book } from '../../services/api/books';
+
+type LectureBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const localCovers = [
   require('../../../assets/imgCoverRoman/CoversRoman1.jpeg'),
@@ -14,24 +16,19 @@ const localCovers = [
   require('../../../assets/imgCoverRoman/CoversRoman4.jpeg'),
 ];
 
-type LectureBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
 export const LectureBoard: React.FC = () => {
   const navigation = useNavigation<LectureBoardNavigationProp>();
   const { books, loading, error } = useBooks();
 
   const goToOeuvrePage = (book: Book) => {
     navigation.navigate('OeuvrePage', {
-      id: book.id,
-      title: book.title,
-      description: book.description,
-      cover: book.coverimage || '',
+      id: book.id
     });
   };
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#fff" />
       </View>
     );
@@ -39,7 +36,7 @@ export const LectureBoard: React.FC = () => {
 
   if (error) {
     return (
-      <View style={styles.loadingContainer}>
+      <View style={styles.container}>
         <Text style={styles.errorText}>{error}</Text>
       </View>
     );
@@ -47,7 +44,10 @@ export const LectureBoard: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <BookList books={books} onBookPress={goToOeuvrePage} />
+      <BookList 
+        books={books} 
+        onBookPress={goToOeuvrePage}
+      />
     </View>
   );
 };
@@ -57,14 +57,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#A020F0',
   },
-  loadingContainer: {
+  loaderContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#A020F0',
   },
   errorText: {
-    color: '#fff',
-    fontSize: 16,
+    color: 'red',
+    fontSize: 18,
+    textAlign: 'center',
   },
 }); 

@@ -5,9 +5,6 @@ export type RootStackParamList = {
   TestRedirection: undefined;
   OeuvrePage: {
     id: string;
-    title: string;
-    description: string;
-    cover: string;
   };
   LecturePage: undefined;
   Create: {
@@ -17,6 +14,18 @@ export type RootStackParamList = {
     bookId: string;
   };
   FormulaireCreation: undefined;
+  Paragraphs: {
+    chapterId: string;
+    bookId: string;
+    chapterTitle: string;
+    bookTitle: string;
+  };
+  Comments: {
+    chapterId: string;
+    bookId: string;
+    chapterTitle: string;
+    bookTitle: string;
+  };
 };
 
 export type AuthStackParamList = {

@@ -25,6 +25,12 @@ export const ENDPOINTS = {
     delete: (id: string) => `/books/${id}`,
     search: '/books/search',
   },
+  chapters: {
+    getByBookId: (bookId: string) => `/chapters/book/${bookId}`,
+  },
+  paragraphs: {
+    getByChapterId: (chapterId: string) => `/bookcontents/chapter/${chapterId}`,
+  },
   booktypes: {
     getAll: '/booktypes',
   },
