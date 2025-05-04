@@ -3,18 +3,24 @@ import { API_CONFIG, ENDPOINTS } from '../../config/api';
 export interface Book {
     id: string;
     title: string;
-    author: string;
     description: string;
-    coverImage?: string;
+    coverimage?: string;
     createdAt: string;
     updatedAt: string;
+    category_id: number;
+    booktype_id: number | null;
+    user_id: number;
+    status: string;
 }
 
 export interface CreateBookData {
     title: string;
-    author: string;
     description: string;
-    coverImage?: string;
+    coverimage?: string;
+    category_id: number;
+    booktype_id: number | null;
+    user_id: number;
+    status: string;
 }
 
 export interface UpdateBookData extends Partial<CreateBookData> { }
@@ -45,11 +51,19 @@ export const bookService = {
     },
 
     create: async (data: CreateBookData): Promise<Book> => {
+        console.log('Données reçues par bookService.create:', data);
+        console.log('Headers envoyés:', API_CONFIG.headers);
+        console.log('URL complète:', `${API_CONFIG.baseURL}${ENDPOINTS.books.create}`);
+        
         const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.create}`, {
             method: 'POST',
             headers: API_CONFIG.headers,
             body: JSON.stringify(data),
         });
+        
+        console.log('Statut de la réponse:', response.status);
+        console.log('Headers de la réponse:', response.headers);
+        
         return handleResponse(response);
     },
 
