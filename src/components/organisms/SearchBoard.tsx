@@ -1,21 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { SearchBar } from '../atoms/SearchBar';
 import { SearchList } from '../molecules/SearchList';
-import { bookService, Book } from '../../services/api/books';
+import { Book } from '../../services/api/books';
+import { useSearch } from '../../hooks/useSearch';
 
 type SearchBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const SearchBoard: React.FC = () => {
   const navigation = useNavigation<SearchBoardNavigationProp>();
-  const [books, setBooks] = useState<Book[]>([]);
-  const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>('');
+  const { filteredBooks, loading, error, handleSearch, searchQuery } = useSearch();
 
   const goToOeuvrePage = (book: Book) => {
     navigation.navigate('OeuvrePage', {
@@ -25,30 +22,6 @@ export const SearchBoard: React.FC = () => {
       cover: book.coverimage || '',
     });
   };
-
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const data = await bookService.getAll();
-        setBooks(data);
-        setFilteredBooks(data);
-      } catch (err: any) {
-        setError(err.message || 'Une erreur inconnue est survenue');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBooks();
-  }, []);
-
-  useEffect(() => {
-    const lowerQuery = searchQuery.toLowerCase();
-    const filtered = books.filter((book) =>
-      book.title.toLowerCase().includes(lowerQuery)
-    );
-    setFilteredBooks(filtered);
-  }, [searchQuery, books]);
 
   if (loading) {
     return (
@@ -70,7 +43,7 @@ export const SearchBoard: React.FC = () => {
     <View style={styles.container}>
       <SearchBar
         value={searchQuery}
-        onChangeText={setSearchQuery}
+        onChangeText={handleSearch}
         placeholder="Rechercher un livre..."
       />
       <SearchList books={filteredBooks} onBookPress={goToOeuvrePage} />

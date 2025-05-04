@@ -7,9 +7,8 @@ import { FormInput } from '../atoms/FormInput';
 import { CategoryPicker } from '../atoms/CategoryPicker';
 import { ImageUploader } from '../molecules/ImageUploader';
 import { WorkTypeSelector } from '../molecules/WorkTypeSelector';
-import { bookService } from '../../services/api/books';
-import { API_CONFIG, ENDPOINTS } from '../../config/api';
 import { Ionicons } from '@expo/vector-icons';
+import { useCreateBook } from '../../hooks/useCreateBook';
 
 type CreateFormNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -29,91 +28,29 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
   const [description, setDescription] = useState('');
   const [cover, setCover] = useState('');
   const [category, setCategory] = useState('');
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [bookType, setBookType] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.categories.getAll}`);
-        const data = await response.json();
-        setCategories(data.data);
-      } catch (error) {
-        console.error('Erreur chargement catégories :', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCategories();
-  }, []);
+  const { categories, bookType, loading, fetchBookType, handleSubmit } = useCreateBook();
 
   useEffect(() => {
     if (type === null) return;
-
-    const fetchBookType = async () => {
-      try {
-        const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.booktypes.getAll}`);
-        const json = await response.json();
-        const bookTypeName = type === 0 ? 'roman' : 'webtoon';
-        const found = json.data?.find((bt: any) =>
-          bt.nametype?.toLowerCase() === bookTypeName
-        );
-        if (found) {
-          setBookType(found);
-        }
-      } catch (error) {
-        console.error('Erreur chargement book-types :', error);
-      }
-    };
-
-    fetchBookType();
+    fetchBookType(type);
   }, [type]);
 
-  const handleSubmit = async () => {
-    if (!title || !category || type === null) {
-      Alert.alert('Champs requis', 'Veuillez remplir tous les champs.');
-      return;
-    }
-
-    try {
-      const coverToSend = cover || 'https://via.placeholder.com/300x400.png?text=Couverture';
-      
-      const bookData = {
-        title,
-        description,
-        coverimage: coverToSend,
-        category_id: parseInt(category),
-        booktype_id: bookType?.id || null,
-        user_id: 1,
-        status: 'draft',
-      };
-
-      
-      const newBook = await bookService.create(bookData);
-
-      Alert.alert(
-        'Succès',
-        'Le livre a été créé avec succès !',
-        //todo: changer le nom de la page
-        [
-          {
-            text: 'OK',
-            onPress: () => {
-              if (type === 1) {
-                navigation.navigate('UploadeOeuvreGraph', { bookId: newBook.id });
-              } else {
-                navigation.navigate('TestRedirection');
-              }
-            },
-          },
-        ]
-      );
-    } catch (error: any) {
-      console.error('Erreur détaillée:', error);
-      Alert.alert('Erreur', error.message || 'Une erreur est survenue lors de la création du livre');
-    }
+  const handleFormSubmit = async () => {
+    await handleSubmit(
+      title,
+      description,
+      cover,
+      category,
+      type,
+      (bookId: number) => {
+        if (type === 1) {
+          navigation.navigate('UploadeOeuvreGraph', { bookId: bookId.toString() });
+        } else {
+          navigation.navigate('TestRedirection');
+        }
+      }
+    );
   };
 
   const handleBack = () => {
@@ -167,7 +104,7 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
         onUploadingChange={setUploading}
       />
 
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+      <TouchableOpacity style={styles.submitButton} onPress={handleFormSubmit}>
         <Text style={styles.submitButtonText}>Créer</Text>
       </TouchableOpacity>
     </ScrollView>

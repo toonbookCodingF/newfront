@@ -29,7 +29,6 @@ export type MainTabParamList = {
   Library: undefined;
   Lecture: undefined;
   Search: undefined;
-  MenuCreation: undefined;
   Profile: undefined;
   Settings: undefined;
 }; 
