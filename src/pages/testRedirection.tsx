@@ -1,10 +1,11 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const SettingsPage: React.FC = () => {
+const NouvelleCreation: React.FC = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Paramètres</Text>
+      <Text style={styles.text}>...</Text>
+      <Text style={styles.subtext}>En cours de développement</Text>
     </View>
   );
 };
@@ -12,14 +13,20 @@ const SettingsPage: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#A020F0',
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
   },
-  title: {
+  text: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 10,
+  },
+  subtext: {
+    fontSize: 16,
+    color: '#eee',
   },
 });
 
-export default SettingsPage; 
+export default NouvelleCreation;

@@ -1,6 +1,22 @@
 export type RootStackParamList = {
   Auth: undefined;
   Main: undefined;
+  MenuCreation: undefined;
+  TestRedirection: undefined;
+  OeuvrePage: {
+    id: string;
+    title: string;
+    description: string;
+    cover: string;
+  };
+  LecturePage: undefined;
+  Create: {
+    bookId: string;
+  };
+  UploadeOeuvreGraph: {
+    bookId: string;
+  };
+  FormulaireCreation: undefined;
 };
 
 export type AuthStackParamList = {
@@ -10,6 +26,10 @@ export type AuthStackParamList = {
 
 export type MainTabParamList = {
   Home: undefined;
+  Library: undefined;
+  Lecture: undefined;
+  Search: undefined;
+  MenuCreation: undefined;
   Profile: undefined;
   Settings: undefined;
 }; 

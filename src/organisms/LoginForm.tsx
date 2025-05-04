@@ -2,16 +2,18 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/types';
+import { AuthStackParamList, RootStackParamList } from '../navigation/types';
 import { FormField } from '../molecules/FormField';
 import { Button } from '../atoms/Button';
 import { Text } from '../atoms/Text';
 import { loginApi, LoginCredentials } from '../services/api/login';
 
-type LoginFormNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type LoginFormNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
+type RootNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const LoginForm: React.FC = () => {
-  const navigation = useNavigation<LoginFormNavigationProp>();
+  const authNavigation = useNavigation<LoginFormNavigationProp>();
+  const rootNavigation = useNavigation<RootNavigationProp>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -25,12 +27,11 @@ export const LoginForm: React.FC = () => {
       const credentials: LoginCredentials = { email, password };
       const response = await loginApi.login(credentials);
 
-      // Store the token if it's returned in the response
       if (response.token) {
         localStorage.setItem('token', response.token);
       }
 
-      navigation.navigate('Main');
+      rootNavigation.navigate('Main');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
       setError(errorMessage);
@@ -41,7 +42,7 @@ export const LoginForm: React.FC = () => {
   };
 
   const handleNavigateToRegister = () => {
-    navigation.navigate('Auth', { screen: 'Register' });
+    authNavigation.navigate('Register');
   };
 
   return (
