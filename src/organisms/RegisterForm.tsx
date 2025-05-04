@@ -89,7 +89,7 @@ export const RegisterForm: React.FC = () => {
                 onChangeText={setUsername}
                 autoCapitalize="none"
                 error={formError || error || undefined}
-                placeholder="testuser"
+                placeholder="User Name"
             />
             <FormField
                 label="Email"
@@ -98,7 +98,7 @@ export const RegisterForm: React.FC = () => {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 error={formError || error || undefined}
-                placeholder="testuser@email.com"
+                placeholder="Email"
             />
             <FormField
                 label="Prénom"
@@ -106,7 +106,7 @@ export const RegisterForm: React.FC = () => {
                 onChangeText={setName}
                 autoCapitalize="words"
                 error={formError || error || undefined}
-                placeholder="John"
+                placeholder="First Name"
             />
             <FormField
                 label="Nom"
@@ -114,7 +114,7 @@ export const RegisterForm: React.FC = () => {
                 onChangeText={setLastName}
                 autoCapitalize="words"
                 error={formError || error || undefined}
-                placeholder="Doe"
+                placeholder="Last Name"
             />
             <FormField
                 label="Mot de passe"
@@ -122,7 +122,7 @@ export const RegisterForm: React.FC = () => {
                 onChangeText={setPassword}
                 secureTextEntry
                 error={formError || error || undefined}
-                placeholder="StrongPass12345!"
+                placeholder="Password"
             />
             <FormField
                 label="Confirmer le mot de passe"
@@ -130,7 +130,7 @@ export const RegisterForm: React.FC = () => {
                 onChangeText={setConfirmPassword}
                 secureTextEntry
                 error={formError || error || undefined}
-                placeholder="StrongPass12345!"
+                placeholder="Confirm Password"
             />
             <Button
                 title={isLoading ? "Inscription..." : "S'inscrire"}
