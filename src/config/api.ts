@@ -11,10 +11,17 @@ export const ENDPOINTS = {
   auth: {
     login: '/users/login',
     register: '/users/postUser',
-    logout: '/users/logout',
+    logout: '/users/logout'
   },
   user: {
     profile: '/users/profile',
     update: '/users/update',
+  },
+  books: {
+    getAll: '/books',
+    getById: (id: string) => `/books/${id}`,
+    create: '/books',
+    update: (id: string) => `/books/${id}`,
+    delete: (id: string) => `/books/${id}`
   },
 }; 
