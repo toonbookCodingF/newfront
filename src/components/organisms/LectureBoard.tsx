@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, StyleSheet, ActivityIndicator, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../navigation/types';
 import { BookList } from '../molecules/BookList';
-import { bookService, Book } from '../../services/api/books';
-import { API_CONFIG } from '../../config/api';
+import { Book } from '../../services/api/books';
+import { useBooks } from '../../hooks/useBooks';
 
 const localCovers = [
   require('../../../assets/imgCoverRoman/CoversRoman1.jpeg'),
@@ -18,9 +18,7 @@ type LectureBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const LectureBoard: React.FC = () => {
   const navigation = useNavigation<LectureBoardNavigationProp>();
-  const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string>('');
+  const { books, loading, error } = useBooks();
 
   const goToOeuvrePage = (book: Book) => {
     navigation.navigate('OeuvrePage', {
@@ -30,35 +28,6 @@ export const LectureBoard: React.FC = () => {
       cover: book.coverimage || '',
     });
   };
-
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const data = await bookService.getAll();
-        const formattedBooks: Book[] = data.map((book: any, index: number) => ({
-          id: book.id,
-          title: book.title,
-          author: book.author || 'Auteur inconnu',
-          description: book.description,
-          coverimage: `${API_CONFIG.baseURL}${book.coverimage}`,
-          createdAt: book.createdAt || new Date().toISOString(),
-          updatedAt: book.updatedAt || new Date().toISOString(),
-          image: localCovers[index % localCovers.length],
-          category_id: book.category_id,
-          booktype_id: book.bookType_id,
-          user_id: book.user_id,
-          status: book.status,
-        }));
-        setBooks(formattedBooks);
-      } catch (err: any) {
-        setError(err.message || 'Une erreur inconnue est survenue');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchBooks();
-  }, []);
 
   if (loading) {
     return (

@@ -5,6 +5,7 @@ import { RootStackParamList } from './types';
 import { AuthNavigator } from './AuthNavigator';
 import { MainNavigator } from './MainNavigator';
 import FormulaireCreation from '../pages/FormulaireCreation';
+import MenuCreation from '../pages/menuCreation';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -20,6 +21,7 @@ export const RootNavigator: React.FC = () => {
       >
         <Stack.Screen name="Auth" component={AuthNavigator} />
         <Stack.Screen name="Main" component={MainNavigator} />
+        <Stack.Screen name="MenuCreation" component={MenuCreation} />
         <Stack.Screen name="FormulaireCreation" component={FormulaireCreation} />
       </Stack.Navigator>
     </NavigationContainer>
