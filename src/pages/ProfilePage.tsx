@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export const ProfilePage: React.FC = () => {
+const ProfilePage: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Profil</Text>
@@ -20,4 +20,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-}); 
+});
+
+export default ProfilePage; 

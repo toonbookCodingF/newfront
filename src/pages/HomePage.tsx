@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-export const HomePage: React.FC = () => {
+const HomePage: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Bienvenue</Text>
@@ -20,4 +20,6 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
   },
-}); 
+});
+
+export default HomePage; 

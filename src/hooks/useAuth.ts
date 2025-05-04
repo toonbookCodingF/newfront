@@ -30,8 +30,7 @@ export const useAuth = () => {
       setIsLoading(true);
       setError(null);
       const response = await authService.register(data);
-      localStorage.setItem('token', response.token);
-      navigation.navigate('Main', { screen: 'Home' });
+      navigation.navigate('Auth', { screen: 'Login' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Une erreur est survenue');
     } finally {

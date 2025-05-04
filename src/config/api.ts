@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  baseURL: 'http://localhost:3000/api',
+  baseURL: 'http://10.0.2.2:3000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -9,12 +9,26 @@ export const API_CONFIG = {
 
 export const ENDPOINTS = {
   auth: {
-    login: '/auth/login',
-    register: '/auth/register',
-    logout: '/auth/logout',
+    login: '/users/login',
+    register: '/users/postUser',
+    logout: '/users/logout'
   },
   user: {
-    profile: '/user/profile',
-    update: '/user/update',
+    profile: '/users/profile',
+    update: '/users/update',
+  },
+  books: {
+    getAll: '/books',
+    getById: (id: string) => `/books/${id}`,
+    create: '/books',
+    update: (id: string) => `/books/${id}`,
+    delete: (id: string) => `/books/${id}`,
+    search: '/books/search',
+  },
+  booktypes: {
+    getAll: '/booktypes',
+  },
+  categories: {
+    getAll: '/categories',
   },
 }; 
