@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, Pressable, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, Dimensions, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
+import { Ionicons } from '@expo/vector-icons';
 
 type MenuCreationNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -11,6 +12,13 @@ const MenuCreation: React.FC = () => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity 
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <Ionicons name="arrow-back" size={24} color="#fff" />
+      </TouchableOpacity>
+
       <Text style={styles.header}>Menu de Création</Text>
 
       <Pressable style={styles.card} onPress={() => navigation.navigate('FormulaireCreation')}>
@@ -39,6 +47,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#A020F0',
     padding: 20,
     justifyContent: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 40,
+    left: 20,
+    zIndex: 1,
   },
   header: {
     fontSize: 26,

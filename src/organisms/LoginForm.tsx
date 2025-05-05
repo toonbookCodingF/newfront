@@ -1,45 +1,20 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { AuthStackParamList, RootStackParamList } from '../navigation/types';
+import { AuthStackParamList } from '../navigation/types';
 import { FormField } from '../molecules/FormField';
 import { Button } from '../atoms/Button';
 import { Text } from '../atoms/Text';
-import { loginApi, LoginCredentials } from '../services/api/login';
+import { useLogin } from '../hooks/useLogin';
 
 type LoginFormNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
-type RootNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const LoginForm: React.FC = () => {
   const authNavigation = useNavigation<LoginFormNavigationProp>();
-  const rootNavigation = useNavigation<RootNavigationProp>();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleLogin = async () => {
-    try {
-      setError('');
-      setIsLoading(true);
-
-      const credentials: LoginCredentials = { email, password };
-      const response = await loginApi.login(credentials);
-
-      if (response.token) {
-        localStorage.setItem('token', response.token);
-      }
-
-      rootNavigation.navigate('Main');
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
-      setError(errorMessage);
-      Alert.alert('Erreur', errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { handleLogin, isLoading, error } = useLogin();
 
   const handleNavigateToRegister = () => {
     authNavigation.navigate('Register');
@@ -67,7 +42,7 @@ export const LoginForm: React.FC = () => {
       />
       <Button
         title={isLoading ? "Connexion..." : "Se connecter"}
-        onPress={handleLogin}
+        onPress={() => handleLogin(email, password)}
         disabled={isLoading}
       />
       <View style={styles.registerLinkContainer}>

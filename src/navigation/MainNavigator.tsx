@@ -4,10 +4,9 @@ import { MainTabParamList } from './types';
 import HomePage from '../pages/HomePage';
 import ProfilePage from '../pages/ProfilePage';
 import SettingsPage from '../pages/SettingsPage';
-import { LibraryPage } from '../components/organisms/LibraryPage';
-import { LectureBoard } from '../components/organisms/LectureBoard';
-import { SearchBoard } from '../components/organisms/SearchBoard';
-import MenuCreation from '../pages/menuCreation';
+import { LibraryPage } from '../organisms/LibraryPage';
+import { LectureBoard } from '../organisms/LectureBoard';
+import { SearchBoard } from '../organisms/SearchBoard';
 import { Ionicons } from '@expo/vector-icons';
 import { RegisterPage } from '../pages/RegisterPage';
 
@@ -15,7 +14,6 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainNavigator: React.FC = () => {
   return (
-
     <Tab.Navigator
       screenOptions={({ route }) => ({
         tabBarIcon: ({ focused, color, size }) => {
@@ -29,8 +27,6 @@ export const MainNavigator: React.FC = () => {
             iconName = focused ? 'library' : 'library-outline';
           } else if (route.name === 'Search') {
             iconName = focused ? 'search' : 'search-outline';
-          } else if (route.name === 'MenuCreation') {
-            iconName = focused ? 'add-circle' : 'add-circle-outline';
           } else if (route.name === 'Profile') {
             iconName = focused ? 'person' : 'person-outline';
           } else if (route.name === 'Settings') {
@@ -72,13 +68,6 @@ export const MainNavigator: React.FC = () => {
         component={SearchBoard}
         options={{
           title: 'Recherche',
-        }}
-      />
-      <Tab.Screen 
-        name="MenuCreation" 
-        component={MenuCreation}
-        options={{
-          title: 'Créer',
         }}
       />
       <Tab.Screen 

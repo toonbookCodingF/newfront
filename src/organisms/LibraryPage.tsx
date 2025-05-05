@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { LibraryCard } from '../../components/atoms/LibraryCard';
+import { LibraryCard } from '../atoms/LibraryCard';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/types';
+import { RootStackParamList } from '../navigation/types';
 
 type LibraryPageNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
