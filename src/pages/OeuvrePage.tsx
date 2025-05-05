@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
-import { OeuvreBoard } from '../components/organisms/OeuvreBoard';
+import { OeuvreBoard } from '../organisms/OeuvreBoard';
 import { Ionicons } from '@expo/vector-icons';
 
 const OeuvrePage: React.FC = () => {

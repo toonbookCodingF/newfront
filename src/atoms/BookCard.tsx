@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Pressable, Image, Text } from 'react-native';
-import { Book } from '../../services/api/books';
+import { Book } from '../services/api/books';
 
 interface BookCardProps {
   book: Book;

@@ -27,9 +27,15 @@ export const ENDPOINTS = {
   },
   chapters: {
     getByBookId: (bookId: string) => `/chapters/book/${bookId}`,
+    create: '/chapters/create',
+    update: (id: string) => `/chapters/${id}`,
+    delete: (id: string) => `/chapters/${id}`,
   },
   paragraphs: {
     getByChapterId: (chapterId: string) => `/bookcontents/chapter/${chapterId}`,
+    create: '/bookcontents',
+    update: (id: string) => `/bookcontents/${id}`,
+    delete: (id: string) => `/bookcontents/${id}`,
   },
   booktypes: {
     getAll: '/booktypes',

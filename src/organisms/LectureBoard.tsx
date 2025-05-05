@@ -2,16 +2,23 @@ import React from 'react';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/types';
+import { RootStackParamList } from '../navigation/types';
 import { BookList } from '../molecules/BookList';
-import { useSearch } from '../../hooks/useSearch';
-import { Book } from '../../services/api/books';
+import { useBooks } from '../hooks/useBooks';
+import { Book } from '../services/api/books';
 
-type SearchBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type LectureBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-export const SearchBoard: React.FC = () => {
-  const navigation = useNavigation<SearchBoardNavigationProp>();
-  const { filteredBooks, loading, error, handleSearch, searchQuery } = useSearch();
+const localCovers = [
+  require('../../assets/imgCoverRoman/CoversRoman1.jpeg'),
+  require('../../assets/imgCoverRoman/CoversRoman2.jpg'),
+  require('../../assets/imgCoverRoman/CoversRoman3.jpeg'),
+  require('../../assets/imgCoverRoman/CoversRoman4.jpeg'),
+];
+
+export const LectureBoard: React.FC = () => {
+  const navigation = useNavigation<LectureBoardNavigationProp>();
+  const { books, loading, error } = useBooks();
 
   const goToOeuvrePage = (book: Book) => {
     navigation.navigate('OeuvrePage', {
@@ -38,7 +45,7 @@ export const SearchBoard: React.FC = () => {
   return (
     <View style={styles.container}>
       <BookList 
-        books={filteredBooks} 
+        books={books} 
         onBookPress={goToOeuvrePage}
       />
     </View>

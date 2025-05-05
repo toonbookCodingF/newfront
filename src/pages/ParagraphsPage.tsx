@@ -1,6 +1,6 @@
 import React from 'react';
 import { useRoute } from '@react-navigation/native';
-import { ParagraphsBoard } from '../components/organisms/ParagraphsBoard';
+import { ParagraphsBoard } from '../organisms/ParagraphsBoard';
 
 const ParagraphsPage: React.FC = () => {
   const route = useRoute();

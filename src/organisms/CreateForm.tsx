@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Alert, TouchableOpacity, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/types';
+import { RootStackParamList } from '../navigation/types';
 import { FormInput } from '../atoms/FormInput';
 import { CategoryPicker } from '../atoms/CategoryPicker';
 import { ImageUploader } from '../molecules/ImageUploader';
 import { WorkTypeSelector } from '../molecules/WorkTypeSelector';
 import { Ionicons } from '@expo/vector-icons';
-import { useCreateBook } from '../../hooks/useCreateBook';
+import { useCreateBook } from '../hooks/useCreateBook';
 
 type CreateFormNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -44,10 +44,11 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
       category,
       type,
       (bookId: number) => {
+        console.log('ID du livre créé:', bookId);
         if (type === 1) {
           navigation.navigate('UploadeOeuvreGraph', { bookId: bookId.toString() });
         } else {
-          navigation.navigate('TestRedirection');
+          navigation.navigate('CreateChapterPage', { bookId: bookId.toString() });
         }
       }
     );

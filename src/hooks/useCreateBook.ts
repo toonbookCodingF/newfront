@@ -71,7 +71,18 @@ export const useCreateBook = () => {
       };
 
       const newBook = await bookService.create(bookData);
-      onSuccess(parseInt(newBook.id));
+      console.log('Livre créé:', newBook);
+      
+      if (!newBook.id) {
+        throw new Error('ID du livre non trouvé dans la réponse');
+      }
+
+      const bookId = parseInt(newBook.id);
+      if (isNaN(bookId)) {
+        throw new Error('ID du livre invalide');
+      }
+
+      onSuccess(bookId);
     } catch (error: any) {
       console.error('Erreur détaillée:', error);
       Alert.alert('Erreur', error.message || 'Une erreur est survenue lors de la création du livre');

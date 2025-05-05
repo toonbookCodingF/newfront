@@ -4,9 +4,9 @@ import { MainTabParamList } from './types';
 import HomePage from '../pages/HomePage';
 import ProfilePage from '../pages/ProfilePage';
 import SettingsPage from '../pages/SettingsPage';
-import { LibraryPage } from '../components/organisms/LibraryPage';
-import { LectureBoard } from '../components/organisms/LectureBoard';
-import { SearchBoard } from '../components/organisms/SearchBoard';
+import { LibraryPage } from '../organisms/LibraryPage';
+import { LectureBoard } from '../organisms/LectureBoard';
+import { SearchBoard } from '../organisms/SearchBoard';
 import { Ionicons } from '@expo/vector-icons';
 import { RegisterPage } from '../pages/RegisterPage';
 

@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/types';
+import { RootStackParamList } from '../navigation/types';
 import { BookCover } from '../molecules/BookCover';
 import { ChapterButton } from '../atoms/ChapterButton';
-import { useOeuvre } from '../../hooks/useOeuvre';
+import { useOeuvre } from '../hooks/useOeuvre';
 
 type OeuvreBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 

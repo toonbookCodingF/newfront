@@ -2,10 +2,10 @@ import React from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../../navigation/types';
+import { RootStackParamList } from '../navigation/types';
 import { Ionicons } from '@expo/vector-icons';
 import { ParagraphCard } from '../atoms/ParagraphCard';
-import { useParagraphs } from '../../hooks/useParagraphs';
+import { useParagraphs } from '../hooks/useParagraphs';
 
 type ParagraphsBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 

@@ -30,7 +30,9 @@ const handleResponse = async (response: Response) => {
         const error = await response.json();
         throw new Error(error.message || 'Une erreur est survenue');
     }
-    return response.json();
+    const data = await response.json();
+    console.log('Réponse complète:', data);
+    return data;
 };
 
 export const bookService = {
@@ -64,7 +66,14 @@ export const bookService = {
         console.log('Statut de la réponse:', response.status);
         console.log('Headers de la réponse:', response.headers);
         
-        return handleResponse(response);
+        const result = await handleResponse(response);
+        console.log('Résultat de la création:', result);
+        
+        if (!result.data || !result.data.id) {
+            throw new Error('ID du livre non trouvé dans la réponse');
+        }
+        
+        return result.data;
     },
 
     update: async (id: string, data: UpdateBookData): Promise<Book> => {

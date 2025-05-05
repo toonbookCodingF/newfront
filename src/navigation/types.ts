@@ -3,16 +3,13 @@ export type RootStackParamList = {
   Main: undefined;
   MenuCreation: undefined;
   TestRedirection: undefined;
+  Create: { bookId: string };
+  UploadeOeuvreGraph: { bookId: string };
+  CreateChapterPage: { bookId: string };
   OeuvrePage: {
     id: string;
   };
   LecturePage: undefined;
-  Create: {
-    bookId: string;
-  };
-  UploadeOeuvreGraph: {
-    bookId: string;
-  };
   FormulaireCreation: undefined;
   Paragraphs: {
     chapterId: string;

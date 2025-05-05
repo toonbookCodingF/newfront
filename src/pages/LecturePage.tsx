@@ -1,5 +1,5 @@
 import React from 'react';
-import { LectureBoard } from '../components/organisms/LectureBoard';
+import { LectureBoard } from '../organisms/LectureBoard';
 
 const LecturePage: React.FC = () => {
   return <LectureBoard />;

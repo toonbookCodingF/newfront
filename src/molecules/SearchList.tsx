@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlatList, StyleSheet, Dimensions } from 'react-native';
 import { BookCard } from '../atoms/BookCard';
-import { Book } from '../../services/api/books';
+import { Book } from '../services/api/books';
 
 interface SearchListProps {
   books: Book[];
