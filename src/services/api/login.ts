@@ -1,8 +1,19 @@
 import { API_CONFIG, ENDPOINTS } from '../../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiFetch } from './apiService';
 
 export interface LoginCredentials {
     email: string;
     password: string;
+}
+
+interface LoginResponse {
+    token: string;
+    user: {
+        id: number;
+        email: string;
+        name: string;
+    };
 }
 
 const handleResponse = async (response: Response) => {
@@ -15,20 +26,22 @@ const handleResponse = async (response: Response) => {
 
 export const loginApi = {
     login: async (credentials: LoginCredentials) => {
-        const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.auth.login}`, {
+        const response = await apiFetch<LoginResponse>(ENDPOINTS.auth.login, {
             method: 'POST',
-            headers: API_CONFIG.headers,
             body: JSON.stringify(credentials),
         });
-        return handleResponse(response);
+
+        if (response.data.token) {
+            await AsyncStorage.setItem('token', response.data.token);
+        }
+
+        return response.data;
     },
 
     logout: async () => {
-        const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.auth.logout}`, {
+        await apiFetch(ENDPOINTS.auth.logout, {
             method: 'POST',
-            headers: API_CONFIG.headers,
         });
-        await handleResponse(response);
-        localStorage.removeItem('token');
+        await AsyncStorage.removeItem('token');
     },
 }; 
