@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { View, Text, Pressable, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { API_CONFIG } from '../../config/api';
+import { API_CONFIG } from '../config/api';
 
 interface ImageUploaderProps {
   cover: string;

@@ -3,20 +3,26 @@ export type RootStackParamList = {
   Main: undefined;
   MenuCreation: undefined;
   TestRedirection: undefined;
+  Create: { bookId: string };
+  UploadeOeuvreGraph: { bookId: string };
+  CreateChapterPage: { bookId: string };
   OeuvrePage: {
     id: string;
-    title: string;
-    description: string;
-    cover: string;
   };
   LecturePage: undefined;
-  Create: {
-    bookId: string;
-  };
-  UploadeOeuvreGraph: {
-    bookId: string;
-  };
   FormulaireCreation: undefined;
+  Paragraphs: {
+    chapterId: string;
+    bookId: string;
+    chapterTitle: string;
+    bookTitle: string;
+  };
+  Comments: {
+    chapterId: string;
+    bookId: string;
+    chapterTitle: string;
+    bookTitle: string;
+  };
 };
 
 export type AuthStackParamList = {
@@ -29,7 +35,6 @@ export type MainTabParamList = {
   Library: undefined;
   Lecture: undefined;
   Search: undefined;
-  MenuCreation: undefined;
   Profile: undefined;
   Settings: undefined;
 }; 

@@ -26,6 +26,16 @@ export interface CreateBookData {
 
 export interface UpdateBookData extends Partial<CreateBookData> { }
 
+const handleResponse = async (response: Response) => {
+    if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Une erreur est survenue');
+    }
+    const data = await response.json();
+    console.log('Réponse complète:', data);
+    return data;
+};
+
 export const bookService = {
     getAll: async (): Promise<Book[]> => {
         const response = await apiFetch<Book[]>(ENDPOINTS.books.getAll);
@@ -43,6 +53,13 @@ export const bookService = {
             method: 'POST',
             body: JSON.stringify(data),
         });
+
+        console.log('Réponse de création:', response);
+
+        if (!response.data || !response.data.id) {
+            throw new Error('ID du livre non trouvé dans la réponse');
+        }
+
         return response.data;
     },
 

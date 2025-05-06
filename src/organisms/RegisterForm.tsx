@@ -6,13 +6,13 @@ import { AuthStackParamList } from '../navigation/types';
 import { FormField } from '../molecules/FormField';
 import { Button } from '../atoms/Button';
 import { Text } from '../atoms/Text';
-import { useAuth } from '../hooks/useAuth';
+import { useRegister } from '../hooks/useRegister';
 
 type RegisterFormNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
 
 export const RegisterForm: React.FC = () => {
     const navigation = useNavigation<RegisterFormNavigationProp>();
-    const { register, isLoading, error } = useAuth();
+    const { handleRegister, isLoading, error } = useRegister();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -21,7 +21,7 @@ export const RegisterForm: React.FC = () => {
     const [lastName, setLastName] = useState('');
     const [formError, setFormError] = useState('');
 
-    const handleRegister = async () => {
+    const handleRegisterForm = async () => {
         try {
             setFormError('');
 
@@ -53,13 +53,7 @@ export const RegisterForm: React.FC = () => {
                 return;
             }
 
-            const response = await register({
-                username,
-                email,
-                password,
-                name,
-                lastName
-            });
+            await handleRegister(username, email, password, name, lastName);
 
             Alert.alert(
                 'Succès',
@@ -134,7 +128,7 @@ export const RegisterForm: React.FC = () => {
             />
             <Button
                 title={isLoading ? "Inscription..." : "S'inscrire"}
-                onPress={handleRegister}
+                onPress={handleRegisterForm}
                 disabled={isLoading}
                 style={styles.submitButton}
             />
