@@ -1,4 +1,5 @@
 import { API_CONFIG, ENDPOINTS } from '../../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { handleApiError, handleNetworkError } from '../../Errorhandler';
 
 type CreateChapterParams = {
@@ -16,16 +17,25 @@ type CreateContentParams = {
   type?: string;
 };
 
+const getAuthHeaders = async () => {
+  const token = await AsyncStorage.getItem('token');
+  return {
+    ...API_CONFIG.headers,
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
+
 export const chapterService = {
   async createChapter(params: CreateChapterParams) {
     try {
+      const headers = await getAuthHeaders();
       console.log('Tentative de création du chapitre avec les paramètres:', params);
       console.log('URL:', `${API_CONFIG.baseURL}${ENDPOINTS.chapters.create}`);
-      console.log('Headers:', API_CONFIG.headers);
+      console.log('Headers avec token:', headers);
 
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.create}`, {
         method: 'POST',
-        headers: API_CONFIG.headers,
+        headers,
         body: JSON.stringify({
           ...params,
           status: params.status || "published",
@@ -38,6 +48,9 @@ export const chapterService = {
       console.log('Contenu de la réponse:', responseText);
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Token manquant ou invalide');
+        }
         throw new Error(`Erreur ${response.status}: ${responseText}`);
       }
 
@@ -54,13 +67,14 @@ export const chapterService = {
 
   async createBookContent(params: CreateContentParams) {
     try {
+      const headers = await getAuthHeaders();
       console.log('Tentative de création du contenu avec les paramètres:', params);
       console.log('URL:', `${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`);
-      console.log('Headers:', API_CONFIG.headers);
+      console.log('Headers avec token:', headers);
 
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`, {
         method: 'POST',
-        headers: API_CONFIG.headers,
+        headers,
         body: JSON.stringify({
           content: params.content,
           chapter_id: params.chapter_id,
@@ -75,6 +89,9 @@ export const chapterService = {
       console.log('Contenu de la réponse:', responseText);
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Token manquant ou invalide');
+        }
         throw new Error(`Erreur ${response.status}: ${responseText}`);
       }
 
