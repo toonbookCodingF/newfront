@@ -8,6 +8,7 @@ interface FormInputProps {
   placeholder?: string;
   multiline?: boolean;
   numberOfLines?: number;
+  error?: string;
 }
 
 export const FormInput: React.FC<FormInputProps> = ({
@@ -17,12 +18,17 @@ export const FormInput: React.FC<FormInputProps> = ({
   placeholder,
   multiline = false,
   numberOfLines = 1,
+  error,
 }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
-        style={[styles.input, multiline && styles.multilineInput]}
+        style={[
+          styles.input,
+          multiline && styles.multilineInput,
+          error && styles.inputError
+        ]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
@@ -30,6 +36,7 @@ export const FormInput: React.FC<FormInputProps> = ({
         multiline={multiline}
         numberOfLines={numberOfLines}
       />
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 };
@@ -54,5 +61,13 @@ const styles = StyleSheet.create({
   multilineInput: {
     height: 100,
     textAlignVertical: 'top',
+  },
+  inputError: {
+    borderColor: '#d32f2f',
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 12,
+    marginTop: 4,
   },
 }); 

@@ -1,5 +1,5 @@
 export const API_CONFIG = {
-  baseURL: 'http://10.0.2.2:3000/api',
+  baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',

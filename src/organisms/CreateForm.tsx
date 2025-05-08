@@ -29,6 +29,7 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
   const [cover, setCover] = useState('');
   const [category, setCategory] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { categories, bookType, loading, fetchBookType, handleSubmit } = useCreateBook();
 
   useEffect(() => {
@@ -36,22 +37,50 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
     fetchBookType(type);
   }, [type]);
 
+  const validateForm = () => {
+    if (!title.trim()) {
+      setError('Le titre est requis');
+      return false;
+    }
+    if (!category) {
+      setError('La catégorie est requise');
+      return false;
+    }
+    if (type === null) {
+      setError('Le type d\'œuvre est requis');
+      return false;
+    }
+    return true;
+  };
+
   const handleFormSubmit = async () => {
-    await handleSubmit(
-      title,
-      description,
-      cover,
-      category,
-      type,
-      (bookId: number) => {
-        console.log('ID du livre créé:', bookId);
-        if (type === 1) {
-          navigation.navigate('UploadeOeuvreGraph', { bookId: bookId.toString() });
-        } else {
-          navigation.navigate('CreateChapterPage', { bookId: bookId.toString() });
-        }
+    try {
+      setError(null);
+
+      if (!validateForm()) {
+        return;
       }
-    );
+
+      await handleSubmit(
+        title,
+        description,
+        cover,
+        category,
+        type,
+        (bookId: number) => {
+          console.log('ID du livre créé:', bookId);
+          if (type === 1) {
+            navigation.navigate('UploadeOeuvreGraph', { bookId: bookId.toString() });
+          } else {
+            navigation.navigate('CreateChapterPage', { bookId: bookId.toString() });
+          }
+        }
+      );
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de la création';
+      setError(errorMessage);
+      Alert.alert('Erreur', errorMessage);
+    }
   };
 
   const handleBack = () => {
@@ -60,6 +89,7 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
     setDescription('');
     setCover('');
     setCategory('');
+    setError(null);
     onBack();
   };
 
@@ -74,11 +104,21 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
         <Text style={styles.backButtonText}>Retour</Text>
       </TouchableOpacity>
 
+      {error && (
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>{error}</Text>
+        </View>
+      )}
+
       <FormInput
         label="Titre"
         value={title}
-        onChangeText={setTitle}
+        onChangeText={(text) => {
+          setTitle(text);
+          setError(null);
+        }}
         placeholder="Entrez le titre"
+        error={error && !title.trim() ? 'Le titre est requis' : undefined}
       />
 
       <FormInput
@@ -93,9 +133,13 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
       <CategoryPicker
         label="Catégorie"
         value={category}
-        onValueChange={setCategory}
+        onValueChange={(value) => {
+          setCategory(value);
+          setError(null);
+        }}
         categories={categories}
         loading={loading}
+        error={error && !category ? 'La catégorie est requise' : undefined}
       />
 
       <ImageUploader
@@ -105,8 +149,14 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
         onUploadingChange={setUploading}
       />
 
-      <TouchableOpacity style={styles.submitButton} onPress={handleFormSubmit}>
-        <Text style={styles.submitButtonText}>Créer</Text>
+      <TouchableOpacity
+        style={[styles.submitButton, uploading && styles.submitButtonDisabled]}
+        onPress={handleFormSubmit}
+        disabled={uploading}
+      >
+        <Text style={styles.submitButtonText}>
+          {uploading ? 'Création en cours...' : 'Créer'}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );
@@ -136,9 +186,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 20,
   },
+  submitButtonDisabled: {
+    backgroundColor: '#cccccc',
+  },
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  errorContainer: {
+    backgroundColor: '#ffebee',
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 15,
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 14,
   },
 }); 
