@@ -12,29 +12,13 @@ type SearchBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 export const SearchBoard: React.FC = () => {
   const navigation = useNavigation<SearchBoardNavigationProp>();
-  const { filteredBooks, loading, error, handleSearch, searchQuery } = useSearch();
+  const { filteredBooks, loading, error, handleSearch, searchQuery, isSearching } = useSearch();
 
   const goToOeuvrePage = (book: Book) => {
     navigation.navigate('OeuvrePage', {
       id: book.id
     });
   };
-
-  if (loading) {
-    return (
-      <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#fff" />
-      </View>
-    );
-  }
-
-  if (error) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -43,10 +27,21 @@ export const SearchBoard: React.FC = () => {
         onChangeText={handleSearch}
         placeholder="Rechercher un livre..."
       />
-      <BookList 
-        books={filteredBooks} 
-        onBookPress={goToOeuvrePage}
-      />
+      {error ? (
+        <Text style={styles.errorText}>{error}</Text>
+      ) : (
+        <>
+          <BookList 
+            books={filteredBooks} 
+            onBookPress={goToOeuvrePage}
+          />
+          {isSearching && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#fff" />
+            </View>
+          )}
+        </>
+      )}
     </View>
   );
 };
@@ -56,15 +51,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#A020F0',
   },
-  loaderContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#A020F0',
-  },
   errorText: {
     color: 'red',
     fontSize: 18,
     textAlign: 'center',
   },
+  loadingContainer: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -20 }, { translateY: -20 }],
+  }
 }); 
