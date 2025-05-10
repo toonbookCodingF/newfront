@@ -8,8 +8,22 @@ import { FormInput } from '../atoms/FormInput';
 import { Button } from '../atoms/Button';
 import { ImagePreview } from '../molecules/ImagePreview';
 import { apiFetch } from '../services/api/apiService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type UploadeOeuvreGraphNavigationProp = NativeStackNavigationProp<RootStackParamList, 'UploadeOeuvreGraph'>;
+
+interface ChapterResponse {
+    data: {
+        message: string;
+        data: {
+            id: number;
+            title: string;
+            book_id: number;
+            status: string;
+            order: number;
+        }
+    }
+}
 
 export default function UploadeOeuvreGraph() {
     const route = useRoute();
@@ -62,49 +76,72 @@ export default function UploadeOeuvreGraph() {
 
         try {
             // 1. Créer le chapitre
-            const chapterResponse = await apiFetch('/chapters/create', {
-                method: 'POST',
-                body: JSON.stringify({
-                    title: chapterTitle,
-                    book_id: parseInt(bookId),
-                    status: 'published',
-                    order: 1,
-                }),
-            }) as Response;
+            const chapterData = {
+                title: chapterTitle,
+                book_id: parseInt(bookId),
+                status: 'published',
+                order: 1,
+            };
 
-            if (!chapterResponse.ok) {
-                throw new Error('Erreur lors de la création du chapitre');
+            console.log('Envoi des données du chapitre:', chapterData);
+
+            const chapterResponse = await apiFetch<ChapterResponse>('/chapters/create', {
+                method: 'POST',
+                body: JSON.stringify(chapterData),
+            });
+
+            console.log('Réponse création chapitre complète:', JSON.stringify(chapterResponse, null, 2));
+
+            if (!chapterResponse.data?.data?.data?.id) {
+                console.error('Structure de réponse invalide:', chapterResponse);
+                throw new Error('Erreur lors de la création du chapitre: Structure de réponse invalide');
             }
 
-            const chapterData = await chapterResponse.json();
-            const chapterId = chapterData.data.id;
+            const chapterId = chapterResponse.data.data.data.id;
+            console.log('ID du chapitre créé:', chapterId);
 
             // 2. Uploader les images
+            const token = await AsyncStorage.getItem('token');
             const formData = new FormData();
-            images.forEach((uri, index) => {
+
+            // Ajouter le chapter_id en premier
+            formData.append('chapter_id', chapterId.toString());
+
+            // Ajouter chaque image
+            for (const uri of images) {
                 const fileName = uri.split('/').pop();
-                const fileType = fileName?.split('.').pop();
+                const fileType = fileName?.split('.').pop() || 'jpg';
 
                 formData.append('files', {
                     uri,
-                    name: fileName,
+                    name: `image_${Date.now()}.${fileType}`,
                     type: `image/${fileType}`,
                 } as any);
+            }
+
+            console.log('Envoi des données du contenu:', {
+                chapter_id: chapterId,
+                nombre_images: images.length,
+                formData: formData
             });
 
-            formData.append('chapter_id', chapterId.toString());
-
-            const contentResponse = await apiFetch('/bookcontents', {
+            const response = await fetch('http://localhost:3000/api/bookcontents', {
                 method: 'POST',
                 headers: {
+                    'Authorization': `Bearer ${token}`,
                     'Content-Type': 'multipart/form-data',
                 },
                 body: formData,
-            }) as Response;
+            });
 
-            if (!contentResponse.ok) {
-                throw new Error('Erreur lors de l\'upload des images');
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Réponse serveur:', errorText);
+                throw new Error(`Erreur serveur (${response.status}): ${errorText}`);
             }
+
+            const contentResponse = await response.json();
+            console.log('Réponse upload contenu:', contentResponse);
 
             Alert.alert(
                 'Succès',
