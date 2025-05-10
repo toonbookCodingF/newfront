@@ -4,11 +4,11 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { FormInput } from '../atoms/FormInput';
 import { Button } from '../atoms/Button';
 import { ImagePreview } from '../molecules/ImagePreview';
 import { apiFetch } from '../services/api/apiService';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type UploadeOeuvreGraphNavigationProp = NativeStackNavigationProp<RootStackParamList, 'UploadeOeuvreGraph'>;
 
@@ -52,8 +52,29 @@ export default function UploadeOeuvreGraph() {
             });
 
             if (!result.canceled) {
-                const uris = result.assets.map((asset) => asset.uri);
-                setImages((prevImages) => [...prevImages, ...uris]);
+                // Copier les images dans le dossier local
+                const newImages = await Promise.all(
+                    result.assets.map(async (asset) => {
+                        const fileName = `image_${Date.now()}_${Math.random().toString(36).substring(7)}.jpg`;
+                        const destination = `${FileSystem.documentDirectory}img/oeuvreGraph/${fileName}`;
+
+                        // Créer le dossier s'il n'existe pas
+                        await FileSystem.makeDirectoryAsync(
+                            `${FileSystem.documentDirectory}img/oeuvreGraph`,
+                            { intermediates: true }
+                        );
+
+                        // Copier l'image
+                        await FileSystem.copyAsync({
+                            from: asset.uri,
+                            to: destination
+                        });
+
+                        return destination;
+                    })
+                );
+
+                setImages((prevImages) => [...prevImages, ...newImages]);
             }
         } catch (error) {
             console.error('Erreur sélection images :', error);
@@ -90,62 +111,29 @@ export default function UploadeOeuvreGraph() {
                 body: JSON.stringify(chapterData),
             });
 
-            console.log('Réponse création chapitre complète:', JSON.stringify(chapterResponse, null, 2));
-
             if (!chapterResponse.data?.data?.data?.id) {
-                console.error('Structure de réponse invalide:', chapterResponse);
                 throw new Error('Erreur lors de la création du chapitre: Structure de réponse invalide');
             }
 
             const chapterId = chapterResponse.data.data.data.id;
-            console.log('ID du chapitre créé:', chapterId);
 
-            // 2. Uploader les images
-            const token = await AsyncStorage.getItem('token');
-            const formData = new FormData();
-
-            // Ajouter le chapter_id en premier
-            formData.append('chapter_id', chapterId.toString());
-
-            // Ajouter chaque image
-            for (const uri of images) {
-                const fileName = uri.split('/').pop();
-                const fileType = fileName?.split('.').pop() || 'jpg';
-
-                formData.append('files', {
-                    uri,
-                    name: `image_${Date.now()}.${fileType}`,
-                    type: `image/${fileType}`,
-                } as any);
-            }
-
-            console.log('Envoi des données du contenu:', {
+            // 2. Envoyer les URLs des images au backend
+            const contentData = {
                 chapter_id: chapterId,
-                nombre_images: images.length,
-                formData: formData
-            });
+                images: images.map(imagePath => ({
+                    path: imagePath,
+                    order: images.indexOf(imagePath) + 1
+                }))
+            };
 
-            const response = await fetch('http://localhost:3000/api/bookcontents', {
+            const response = await apiFetch('/bookcontents', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'multipart/form-data',
-                },
-                body: formData,
+                body: JSON.stringify(contentData),
             });
-
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Réponse serveur:', errorText);
-                throw new Error(`Erreur serveur (${response.status}): ${errorText}`);
-            }
-
-            const contentResponse = await response.json();
-            console.log('Réponse upload contenu:', contentResponse);
 
             Alert.alert(
                 'Succès',
-                'Chapitre et images uploadés avec succès !',
+                'Chapitre et images enregistrés avec succès !',
                 [
                     {
                         text: 'OK',
@@ -161,7 +149,7 @@ export default function UploadeOeuvreGraph() {
             console.error('Erreur upload :', error);
             Alert.alert(
                 'Erreur',
-                error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'upload.'
+                error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'enregistrement.'
             );
         } finally {
             setUploading(false);
@@ -189,7 +177,7 @@ export default function UploadeOeuvreGraph() {
                     <>
                         <ImagePreview images={images} />
                         <Button
-                            title={uploading ? 'Upload en cours...' : 'Uploader les images'}
+                            title={uploading ? 'Enregistrement en cours...' : 'Enregistrer le chapitre'}
                             onPress={uploadImages}
                             disabled={uploading}
                             style={styles.button}
