@@ -48,13 +48,23 @@ export const useOeuvre = (bookId: string) => {
         console.log('Book response status:', bookResponse.status);
         const bookData = await bookResponse.json();
         console.log('Book response data:', bookData);
+        console.log('Cover field from API:', bookData.cover);
 
         if (!bookResponse.ok) {
           throw new Error(`Erreur lors de la récupération du livre: ${bookData.message || bookResponse.statusText}`);
         }
 
-        // La réponse est directement l'objet livre, pas besoin de .data
-        setBook(bookData);
+        // Format the book data to match the Book interface
+        const formattedBook = {
+          ...bookData,
+          coverimage: bookData.cover && bookData.cover !== '' ? `${API_CONFIG.imageBaseURL}${bookData.cover}` : undefined
+        };
+
+        console.log('Base URL:', API_CONFIG.imageBaseURL);
+        console.log('Cover path:', bookData.cover);
+        console.log('Full cover URL:', formattedBook.coverimage);
+        console.log('Livre formaté:', formattedBook);
+        setBook(formattedBook);
 
         // Fetch chapters
         console.log('Fetching chapters from:', `${API_CONFIG.baseURL}${ENDPOINTS.chapters.getByBookId(bookId)}`);
@@ -70,7 +80,6 @@ export const useOeuvre = (bookId: string) => {
           throw new Error(`Erreur lors de la récupération des chapitres: ${chaptersData.message || chaptersResponse.statusText}`);
         }
 
-        // La réponse est directement le tableau de chapitres, pas besoin de .data
         setChapters(Array.isArray(chaptersData) ? chaptersData : chaptersData.data || []);
       } catch (err) {
         console.error('Erreur dans useOeuvre:', err);

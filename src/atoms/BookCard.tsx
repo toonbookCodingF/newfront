@@ -13,11 +13,19 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onPress }) => {
       style={styles.card}
       onPress={() => onPress(book)}
     >
-      <Image
-        source={{ uri: book.coverimage || '' }}
-        style={styles.cover}
-        resizeMode="cover"
-      />
+      <View style={styles.coverContainer}>
+        {book.coverimage ? (
+          <Image
+            source={{ uri: book.coverimage }}
+            style={styles.cover}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.placeholderCover}>
+            <Text style={styles.placeholderText}>Pas de couverture</Text>
+          </View>
+        )}
+      </View>
       <Text style={styles.title} numberOfLines={2}>{book.title}</Text>
     </Pressable>
   );
@@ -36,10 +44,24 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
   },
-  cover: {
+  coverContainer: {
     width: '100%',
     height: 200,
-    backgroundColor: '#ccc',
+  },
+  cover: {
+    width: '100%',
+    height: '100%',
+  },
+  placeholderCover: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#e0e0e0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  placeholderText: {
+    color: '#666',
+    fontSize: 14,
   },
   title: {
     fontSize: 16,
