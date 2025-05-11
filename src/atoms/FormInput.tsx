@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ViewStyle, TextStyle } from 'react-native';
 
 interface FormInputProps {
   label: string;
@@ -9,6 +9,10 @@ interface FormInputProps {
   multiline?: boolean;
   numberOfLines?: number;
   error?: string;
+  containerStyle?: ViewStyle;
+  labelStyle?: TextStyle;
+  inputStyle?: TextStyle;
+  placeholderTextColor?: string;
 }
 
 export const FormInput: React.FC<FormInputProps> = ({
@@ -19,20 +23,25 @@ export const FormInput: React.FC<FormInputProps> = ({
   multiline = false,
   numberOfLines = 1,
   error,
+  containerStyle,
+  labelStyle,
+  inputStyle,
+  placeholderTextColor = '#aaa',
 }) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
+    <View style={[styles.container, containerStyle]}>
+      <Text style={[styles.label, labelStyle]}>{label}</Text>
       <TextInput
         style={[
           styles.input,
           multiline && styles.multilineInput,
-          error && styles.inputError
+          error && styles.inputError,
+          inputStyle
         ]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="#aaa"
+        placeholderTextColor={placeholderTextColor}
         multiline={multiline}
         numberOfLines={numberOfLines}
       />

@@ -5,8 +5,7 @@ import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import * as ImagePicker from 'expo-image-picker';
 import { FormInput } from '../atoms/FormInput';
-import { Button } from '../atoms/Button';
-import { ImagePreview } from '../molecules/ImagePreview';
+import { ImageUploadSection } from '../molecules/ImageUploadSection';
 import { apiFetch } from '../services/api/apiService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -61,7 +60,6 @@ export default function UploadeOeuvreGraph() {
             if (!result.canceled) {
                 const newImages = await Promise.all(
                     result.assets.map(async (asset) => {
-                        // Récupérer les informations du fichier
                         const response = await fetch(asset.uri);
                         const blob = await response.blob();
 
@@ -96,7 +94,6 @@ export default function UploadeOeuvreGraph() {
         setUploading(true);
 
         try {
-            // Récupérer le token JWT
             const token = await AsyncStorage.getItem('token');
             if (!token) {
                 throw new Error('Non authentifié. Veuillez vous reconnecter.');
@@ -125,75 +122,65 @@ export default function UploadeOeuvreGraph() {
 
             const chapterId = chapterResponse.data.data.id;
 
-            // 2. Envoyer les images au backend
+            // 2. Envoyer les images
             for (let i = 0; i < images.length; i++) {
                 const image = images[i];
 
-                try {
-                    // Vérifier la taille du fichier (5MB max)
-                    if (image.size > 5 * 1024 * 1024) {
-                        throw new Error(`L'image ${i + 1} dépasse la taille maximale de 5MB`);
-                    }
-
-                    // Vérifier le type de fichier
-                    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-                    if (!allowedTypes.includes(image.type)) {
-                        throw new Error(`L'image ${i + 1} n'est pas dans un format supporté (JPEG, PNG, GIF, WEBP)`);
-                    }
-
-                    // Convertir l'URI en File
-                    const response = await fetch(image.uri);
-                    const blob = await response.blob();
-                    const imageFile = new File([blob], image.fileName, { type: image.type });
-
-                    // Créer un FormData
-                    const formData = new FormData();
-                    formData.append('image', imageFile);
-                    formData.append('chapter_id', chapterId.toString());
-                    formData.append('type', 'image');
-                    formData.append('order', (i + 1).toString());
-
-                    console.log('Envoi de l\'image:', {
-                        chapter_id: chapterId,
-                        order: i + 1,
-                        fileName: image.fileName,
-                        size: image.size,
-                        type: image.type
-                    });
-
-                    // Envoyer la requête avec la bonne URL
-                    const uploadResponse = await fetch('http://localhost:3000/api/bookcontents', {
-                        method: 'POST',
-                        headers: {
-                            'Authorization': `Bearer ${token}`,
-                            'Accept': 'application/json',
-                        },
-                        body: formData
-                    });
-
-                    if (!uploadResponse.ok) {
-                        let errorMessage = uploadResponse.statusText;
-                        try {
-                            const errorData = await uploadResponse.json();
-                            errorMessage = errorData.message || errorMessage;
-                        } catch (e) {
-                            console.error('Erreur lors de la lecture de la réponse d\'erreur:', e);
-                        }
-
-                        console.error('Erreur upload image:', {
-                            status: uploadResponse.status,
-                            statusText: uploadResponse.statusText,
-                            error: errorMessage
-                        });
-                        throw new Error(`Erreur upload image: ${errorMessage}`);
-                    }
-
-                    const uploadData = await uploadResponse.json();
-                    console.log('Réponse upload image:', uploadData);
-                } catch (error) {
-                    console.error(`Erreur lors de l'upload de l'image ${i + 1}:`, error);
-                    throw error;
+                if (image.size > 5 * 1024 * 1024) {
+                    throw new Error(`L'image ${i + 1} dépasse la taille maximale de 5MB`);
                 }
+
+                const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                if (!allowedTypes.includes(image.type)) {
+                    throw new Error(`L'image ${i + 1} n'est pas dans un format supporté (JPEG, PNG, GIF, WEBP)`);
+                }
+
+                const response = await fetch(image.uri);
+                const blob = await response.blob();
+                const imageFile = new File([blob], image.fileName, { type: image.type });
+
+                const formData = new FormData();
+                formData.append('image', imageFile);
+                formData.append('chapter_id', chapterId.toString());
+                formData.append('type', 'image');
+                formData.append('order', (i + 1).toString());
+
+                console.log('Envoi de l\'image:', {
+                    chapter_id: chapterId,
+                    order: i + 1,
+                    fileName: image.fileName,
+                    size: image.size,
+                    type: image.type
+                });
+
+                const uploadResponse = await fetch('http://localhost:3000/api/bookcontents', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json',
+                    },
+                    body: formData
+                });
+
+                if (!uploadResponse.ok) {
+                    let errorMessage = uploadResponse.statusText;
+                    try {
+                        const errorData = await uploadResponse.json();
+                        errorMessage = errorData.message || errorMessage;
+                    } catch (e) {
+                        console.error('Erreur lors de la lecture de la réponse d\'erreur:', e);
+                    }
+
+                    console.error('Erreur upload image:', {
+                        status: uploadResponse.status,
+                        statusText: uploadResponse.statusText,
+                        error: errorMessage
+                    });
+                    throw new Error(`Erreur upload image: ${errorMessage}`);
+                }
+
+                const uploadData = await uploadResponse.json();
+                console.log('Réponse upload image:', uploadData);
             }
 
             Alert.alert(
@@ -229,26 +216,18 @@ export default function UploadeOeuvreGraph() {
                     value={chapterTitle}
                     onChangeText={setChapterTitle}
                     placeholder="Ex: Chapitre 1 – L'aventure commence"
+                    containerStyle={styles.inputContainer}
+                    labelStyle={styles.label}
+                    inputStyle={styles.inputText}
+                    placeholderTextColor="#ffffff80"
                 />
 
-                <Button
-                    title="Choisir des images"
-                    onPress={pickImages}
-                    disabled={uploading}
-                    style={styles.button}
+                <ImageUploadSection
+                    images={images}
+                    onPickImages={pickImages}
+                    onUpload={uploadImages}
+                    uploading={uploading}
                 />
-
-                {images.length > 0 && (
-                    <>
-                        <ImagePreview images={images.map(img => img.uri)} />
-                        <Button
-                            title={uploading ? 'Enregistrement en cours...' : 'Enregistrer le chapitre'}
-                            onPress={uploadImages}
-                            disabled={uploading}
-                            style={styles.button}
-                        />
-                    </>
-                )}
             </View>
         </ScrollView>
     );
@@ -262,7 +241,16 @@ const styles = StyleSheet.create({
     content: {
         padding: 20,
     },
-    button: {
-        marginVertical: 10,
+    inputContainer: {
+        backgroundColor: 'transparent',
+    },
+    label: {
+        color: '#ffffff',
+    },
+    inputText: {
+        color: '#ffffff',
+        borderBottomColor: '#ffffff',
+        borderBottomWidth: 1,
+        backgroundColor: 'transparent',
     },
 }); 
