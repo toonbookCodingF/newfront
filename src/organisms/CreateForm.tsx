@@ -26,7 +26,9 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
   const [type, setType] = useState<number | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [cover, setCover] = useState('');
+  const [cover, setCover] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState('');
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
   const [category, setCategory] = useState('');
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,14 +63,42 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
         return;
       }
 
-      await handleSubmit(
+      const formData = new FormData();
+      formData.append('title', title);
+      formData.append('description', description || '');
+      formData.append('category_id', category);
+      formData.append('booktype_id', bookType?.id?.toString() || '');
+      formData.append('user_id', '1'); // À remplacer par l'ID de l'utilisateur connecté
+      formData.append('status', 'draft');
+
+      console.log('Données du livre avant envoi:', {
         title,
         description,
-        cover,
-        category,
-        type,
+        category_id: category,
+        booktype_id: bookType?.id,
+        user_id: '1',
+        status: 'draft',
+        hasCover: !!cover
+      });
+
+      if (cover) {
+        console.log('Ajout de la cover au FormData:', {
+          name: cover.name,
+          type: cover.type,
+          size: cover.size
+        });
+        formData.append('cover', cover);
+      }
+
+      await handleSubmit(
+        formData,
         (bookId: number) => {
-          console.log('ID du livre créé:', bookId);
+          console.log('Livre créé avec succès:', {
+            bookId,
+            title,
+            hasCover: !!cover,
+            coverUrl: coverUrl
+          });
           if (type === 1) {
             navigation.navigate('UploadeOeuvreGraph', { bookId: bookId.toString() });
           } else {
@@ -77,6 +107,7 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
         }
       );
     } catch (err) {
+      console.error('Erreur lors de la création du livre:', err);
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de la création';
       setError(errorMessage);
       Alert.alert('Erreur', errorMessage);
@@ -87,10 +118,19 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
     setType(null);
     setTitle('');
     setDescription('');
-    setCover('');
+    setCover(null);
+    setCoverPreview('');
+    setCoverUrl(null);
     setCategory('');
     setError(null);
     onBack();
+  };
+
+  const handleCoverChange = (file: File) => {
+    setCover(file);
+    const previewUrl = URL.createObjectURL(file);
+    setCoverPreview(previewUrl);
+    setCoverUrl(previewUrl);
   };
 
   if (type === null) {
@@ -143,8 +183,8 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
       />
 
       <ImageUploader
-        cover={cover}
-        onCoverChange={setCover}
+        cover={coverPreview}
+        onCoverChange={handleCoverChange}
         uploading={uploading}
         onUploadingChange={setUploading}
       />

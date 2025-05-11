@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { bookService } from '../services/api/books';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Category {
   id: number;
@@ -45,47 +46,43 @@ export const useCreateBook = () => {
   };
 
   const handleSubmit = async (
-    title: string,
-    description: string,
-    cover: string,
-    category: string,
-    type: number | null,
+    formData: FormData,
     onSuccess: (bookId: number) => void
   ) => {
-    if (!title || !category || type === null) {
-      Alert.alert('Champs requis', 'Veuillez remplir tous les champs.');
-      return;
-    }
-
     try {
-      const coverToSend = cover || 'https://via.placeholder.com/300x400.png?text=Couverture';
-      
-      const bookData = {
-        title,
-        description,
-        coverimage: coverToSend,
-        category_id: parseInt(category),
-        booktype_id: bookType?.id || null,
-        user_id: 1,
-        status: 'draft',
-      };
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token non trouvé');
+      }
 
-      const newBook = await bookService.create(bookData);
-      console.log('Livre créé:', newBook);
-      
-      if (!newBook.id) {
+      const response = await fetch(`${API_CONFIG.baseURL}/books`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      console.log('Réponse complète du serveur:', {
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
+      });
+
+      const data = await response.json();
+      console.log('Données de la réponse:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur lors de la création du livre');
+      }
+
+      if (!data.data || !data.data.id) {
         throw new Error('ID du livre non trouvé dans la réponse');
       }
 
-      const bookId = parseInt(newBook.id);
-      if (isNaN(bookId)) {
-        throw new Error('ID du livre invalide');
-      }
-
-      onSuccess(bookId);
-    } catch (error: any) {
-      console.error('Erreur détaillée:', error);
-      Alert.alert('Erreur', error.message || 'Une erreur est survenue lors de la création du livre');
+      onSuccess(data.data.id);
+    } catch (error) {
+      console.error('Erreur dans handleSubmit:', error);
+      throw error;
     }
   };
 
