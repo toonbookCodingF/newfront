@@ -52,7 +52,7 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id }) => {
 
   return (
     <View style={styles.container}>
-      <BookCover cover={book.coverimage || ''} />
+      <BookCover cover={book.coverimage} />
 
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.title}>{book.title}</Text>
