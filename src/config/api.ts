@@ -1,8 +1,14 @@
 import { update } from "lodash";
 
 export const API_CONFIG = {
+  // Configuration pour le développement local (navigateur)
   baseURL: process.env.REACT_APP_API_URL || 'http://localhost:3000/api',
   imageBaseURL: process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace('/api', '') : 'http://localhost:3000',
+
+  // Configuration pour l'émulateur Android (décommenter ces lignes et commenter les lignes au-dessus)
+  // baseURL: process.env.REACT_APP_API_URL || 'http://10.0.2.2:3000/api',
+  // imageBaseURL: process.env.REACT_APP_API_URL ? process.env.REACT_APP_API_URL.replace('/api', '') : 'http://10.0.2.2:3000',
+
   staticPath: '/public',
   timeout: 10000,
   headers: {
