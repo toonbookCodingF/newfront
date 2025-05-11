@@ -18,23 +18,32 @@ export const useParagraphs = (chapterId: string) => {
         setLoading(true);
         setError(null);
 
-        const token = await AsyncStorage.getItem("userToken");
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          throw new Error('Non authentifié. Veuillez vous reconnecter.');
+        }
+
         const headers = {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
         };
 
+        console.log('Fetching paragraphs for chapter:', chapterId);
         const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.getByChapterId(chapterId)}`, {
           headers,
         });
+
+        console.log('Paragraphs response status:', response.status);
+        const data = await response.json();
+        console.log('Paragraphs response data:', data);
 
         if (!response.ok) {
           throw new Error(`Erreur ${response.status}: Impossible de récupérer les paragraphes`);
         }
 
-        const data = await response.json();
-        setParagraphs(data);
+        setParagraphs(Array.isArray(data) ? data : data.data || []);
       } catch (err) {
+        console.error('Erreur dans useParagraphs:', err);
         setError(err instanceof Error ? err.message : 'Une erreur est survenue');
       } finally {
         setLoading(false);
