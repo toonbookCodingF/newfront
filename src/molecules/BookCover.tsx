@@ -8,6 +8,10 @@ interface BookCoverProps {
 export const BookCover: React.FC<BookCoverProps> = ({ cover }) => {
   console.log('BookCover received cover:', cover);
 
+  const handleImageError = (error: any) => {
+    console.error('Erreur de chargement de l\'image:', error.nativeEvent);
+  };
+
   return (
     <View style={styles.container}>
       {cover && cover !== '' ? (
@@ -15,6 +19,8 @@ export const BookCover: React.FC<BookCoverProps> = ({ cover }) => {
           source={{ uri: cover }}
           style={styles.cover}
           resizeMode="cover"
+          onError={handleImageError}
+          onLoad={() => console.log('Image chargée avec succès:', cover)}
         />
       ) : (
         <View style={styles.placeholderCover}>
@@ -29,6 +35,7 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     height: 300,
+    backgroundColor: '#f5f5f5',
   },
   cover: {
     width: '100%',
