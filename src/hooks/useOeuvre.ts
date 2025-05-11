@@ -57,10 +57,11 @@ export const useOeuvre = (bookId: string) => {
         // Format the book data to match the Book interface
         const formattedBook = {
           ...bookData,
-          coverimage: bookData.cover && bookData.cover !== '' ? `${API_CONFIG.imageBaseURL}${bookData.cover}` : undefined
+          coverimage: bookData.cover && bookData.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${bookData.cover}` : undefined
         };
 
         console.log('Base URL:', API_CONFIG.imageBaseURL);
+        console.log('Static path:', API_CONFIG.staticPath);
         console.log('Cover path:', bookData.cover);
         console.log('Full cover URL:', formattedBook.coverimage);
         console.log('Livre formaté:', formattedBook);
