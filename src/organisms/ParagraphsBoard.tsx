@@ -67,7 +67,7 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
             />
           ))
         ) : (
-          <Text style={styles.noParagraphs}>Aucun paragraphe disponible.</Text>
+          <Text style={styles.noParagraphs}>Aucun contenu disponible.</Text>
         )}
       </ScrollView>
     </View>
