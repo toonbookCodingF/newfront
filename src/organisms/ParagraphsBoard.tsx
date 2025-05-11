@@ -65,11 +65,12 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
             <ParagraphCard
               key={paragraph.id}
               content={paragraph.content}
+              type={paragraph.type}
               onCommentPress={goToComments}
             />
           ))
         ) : (
-          <Text style={styles.noParagraphs}>Aucun paragraphe disponible.</Text>
+          <Text style={styles.noParagraphs}>Aucun contenu disponible.</Text>
         )}
       </ScrollView>
     </View>

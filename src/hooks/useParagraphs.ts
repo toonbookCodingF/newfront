@@ -5,6 +5,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface Paragraph {
   id: number;
   content: string;
+  type: string;
+  chapter_id: number;
+  createdat: string;
 }
 
 export const useParagraphs = (chapterId: string) => {
