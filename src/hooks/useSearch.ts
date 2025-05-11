@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { bookService, Book } from '../services/api/books';
+import { API_CONFIG } from '../config/api';
 
 export const useSearch = () => {
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
@@ -18,7 +19,13 @@ export const useSearch = () => {
       setLoading(true);
       setError('');
       const data = await bookService.getByName(query);
-      setFilteredBooks(data);
+      
+      const formattedBooks = data.map((book: any) => ({
+        ...book,
+        coverimage: book.cover && book.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${book.cover}` : undefined
+      }));
+
+      setFilteredBooks(formattedBooks);
     } catch (err: any) {
       setError(err.message || 'Une erreur inconnue est survenue');
       setFilteredBooks([]);
