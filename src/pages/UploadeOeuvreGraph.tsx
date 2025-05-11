@@ -159,7 +159,16 @@ export default function UploadeOeuvreGraph() {
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json',
                     },
-                    body: formData
+                    body: formData,
+                    signal: AbortSignal.timeout(30000)
+                }).catch(error => {
+                    if (error.name === 'AbortError') {
+                        throw new Error('Le temps d\'upload a dépassé la limite de 30 secondes');
+                    }
+                    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                        throw new Error('Erreur de connexion au serveur. Vérifiez votre connexion internet.');
+                    }
+                    throw error;
                 });
 
                 if (!uploadResponse.ok) {
