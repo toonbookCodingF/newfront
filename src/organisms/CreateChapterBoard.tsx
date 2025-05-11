@@ -41,7 +41,7 @@ export const CreateChapterBoard: React.FC<CreateChapterBoardProps> = ({ bookId }
     try {
       const chapter = await createChapter(numericBookId, chapterTitle);
       await createBookContent(chapter.id, content);
-      
+
       Alert.alert('Succès', 'Chapitre créé avec succès', [
         {
           text: 'OK',
