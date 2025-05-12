@@ -15,66 +15,60 @@ const Tab = createBottomTabNavigator<MainTabParamList>();
 export const MainNavigator: React.FC = () => {
   return (
     <Tab.Navigator
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused, color, size }) => {
-          let iconName: keyof typeof Ionicons.glyphMap;
-
-          if (route.name === 'Home') {
-            iconName = focused ? 'home' : 'home-outline';
-          } else if (route.name === 'Library') {
-            iconName = focused ? 'book' : 'book-outline';
-          } else if (route.name === 'Lecture') {
-            iconName = focused ? 'library' : 'library-outline';
-          } else if (route.name === 'Search') {
-            iconName = focused ? 'search' : 'search-outline';
-          } else if (route.name === 'Profile') {
-            iconName = focused ? 'person' : 'person-outline';
-          } else if (route.name === 'Settings') {
-            iconName = focused ? 'settings' : 'settings-outline';
-          } else {
-            iconName = 'home';
-          }
-
-          return <Ionicons name={iconName} size={size} color={color} />;
-        },
+      screenOptions={{
         tabBarActiveTintColor: '#A020F0',
         tabBarInactiveTintColor: 'gray',
-      })}
+        headerShown: false,
+      }}
     >
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomePage}
         options={{
           title: 'Accueil',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
+          ),
         }}
       />
-
-      <Tab.Screen 
-        name="Library" 
+      <Tab.Screen
+        name="Library"
         component={LibraryPage}
         options={{
           title: 'Bibliothèque',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="book" size={size} color={color} />
+          ),
         }}
       />
-      <Tab.Screen 
-        name="Lecture" 
+      <Tab.Screen
+        name="Lecture"
         component={LectureBoard}
         options={{
           title: 'Lectures',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="library" size={size} color={color} />
+          ),
         }}
       />
-      <Tab.Screen 
-        name="Search" 
+      <Tab.Screen
+        name="Search"
         component={SearchBoard}
         options={{
           title: 'Recherche',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="search" size={size} color={color} />
+          ),
         }}
       />
-      <Tab.Screen 
-        name="Profile" 
+      <Tab.Screen
+        name="Profile"
         component={ProfilePage}
         options={{
           title: 'Profil',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person" size={size} color={color} />
+          ),
         }}
       />
       <Tab.Screen
@@ -82,6 +76,9 @@ export const MainNavigator: React.FC = () => {
         component={SettingsPage}
         options={{
           title: 'Paramètres',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="settings" size={size} color={color} />
+          ),
         }}
       />
     </Tab.Navigator>
