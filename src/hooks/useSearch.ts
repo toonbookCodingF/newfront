@@ -1,43 +1,58 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { bookService, Book } from '../services/api/books';
 
 export const useSearch = () => {
-  const [books, setBooks] = useState<Book[]>([]);
   const [filteredBooks, setFilteredBooks] = useState<Book[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
+  const timeoutRef = useRef<NodeJS.Timeout>();
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-      try {
-        const data = await bookService.getAll();
-        setBooks(data);
-        setFilteredBooks(data);
-      } catch (err: any) {
-        setError(err.message || 'Une erreur inconnue est survenue');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const searchBooks = useCallback(async (query: string) => {
+    if (!query.trim()) {
+      setFilteredBooks([]);
+      return;
+    }
 
-    fetchBooks();
+    try {
+      setLoading(true);
+      setError('');
+      const data = await bookService.getByName(query);
+      setFilteredBooks(data);
+    } catch (err: any) {
+      setError(err.message || 'Une erreur inconnue est survenue');
+      setFilteredBooks([]);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    const lowerQuery = query.toLowerCase();
-    const filtered = books.filter((book) =>
-      book.title.toLowerCase().includes(lowerQuery)
-    );
-    setFilteredBooks(filtered);
+    
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      searchBooks(query);
+    }, 300);
   };
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
 
   return {
     filteredBooks,
     loading,
     error,
     searchQuery,
-    handleSearch
+    handleSearch,
+    isSearching: loading && searchQuery.trim().length > 0
   };
 }; 

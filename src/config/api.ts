@@ -22,8 +22,8 @@ export const ENDPOINTS = {
     getById: (id: string) => `/books/${id}`,
     create: '/books',
     update: (id: string) => `/books/${id}`,
-    delete: (id: string) => `/books/${id}`,
-    search: '/books/search',
+    delete: (id: string) => `/books/${id}`, 
+    getbyname: '/books/search',
   },
   chapters: {
     getByBookId: (bookId: string) => `/chapters/book/${bookId}`,

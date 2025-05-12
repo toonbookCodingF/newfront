@@ -91,5 +91,52 @@ export const bookService = {
             headers: API_CONFIG.headers,
         });
         return handleResponse(response);
+    },
+
+    getByName: async (name: string, limit: number = 10, page: number = 1): Promise<Book[]> => {
+        const requestBody = { searchTerm: name, limit, page };
+        console.log('Requête de recherche:', {
+            url: `${API_CONFIG.baseURL}${ENDPOINTS.books.getbyname}`,
+            method: 'POST',
+            headers: API_CONFIG.headers,
+            body: requestBody
+        });
+
+        const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getbyname}`, {
+            method: 'POST',
+            headers: {
+                ...API_CONFIG.headers,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify(requestBody)
+        });
+
+        console.log('Statut de la réponse:', response.status);
+        const responseText = await response.text();
+        console.log('Réponse brute:', responseText);
+
+        if (!response.ok) {
+            throw new Error(`Erreur ${response.status}: ${responseText}`);
+        }
+
+        try {
+            const responseData = JSON.parse(responseText);
+            return responseData.data.map((book: any) => ({
+                id: book.id,
+                title: book.title,
+                description: book.description,
+                coverimage: book.cover,
+                createdAt: book.createdat,
+                updatedAt: book.createdat,
+                category_id: book.category_id || 1,
+                booktype_id: book.booktype_id,
+                user_id: book.user_id,
+                status: book.status
+            }));
+        } catch (error) {
+            console.error('Erreur de parsing JSON:', error);
+            throw new Error('Erreur de parsing de la réponse');
+        }
     }
 }; 
