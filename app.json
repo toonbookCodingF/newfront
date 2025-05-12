@@ -41,6 +41,7 @@
           "photosPermission": "Cette application a besoin d'accéder à votre galerie pour télécharger des images."
         }
       ]
-    ]
+    ],
+    "newArchEnabled": true
   }
 }

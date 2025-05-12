@@ -29,7 +29,7 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id }) => {
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#fff" />
+        <ActivityIndicator size={36} color="#fff" />
       </View>
     );
   }

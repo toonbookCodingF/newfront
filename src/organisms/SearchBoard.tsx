@@ -23,7 +23,7 @@ export const SearchBoard: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#fff" />
+        <ActivityIndicator size={36} color="#fff" />
       </View>
     );
   }
@@ -43,8 +43,8 @@ export const SearchBoard: React.FC = () => {
         onChangeText={handleSearch}
         placeholder="Rechercher un livre..."
       />
-      <BookList 
-        books={filteredBooks} 
+      <BookList
+        books={filteredBooks}
         onBookPress={goToOeuvrePage}
       />
     </View>
