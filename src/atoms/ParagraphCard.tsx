@@ -44,7 +44,7 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({ content, onComment
         <View style={styles.imageContainer}>
           {isLoading && (
             <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#fff" />
+              <ActivityIndicator size={36} color="#fff" />
             </View>
           )}
           {hasError ? (

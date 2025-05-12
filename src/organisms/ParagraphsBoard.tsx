@@ -34,7 +34,7 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#fff" />
+        <ActivityIndicator size={36} color="#fff" />
       </View>
     );
   }

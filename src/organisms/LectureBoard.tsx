@@ -29,7 +29,7 @@ export const LectureBoard: React.FC = () => {
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
-        <ActivityIndicator size="large" color="#fff" />
+        <ActivityIndicator size={36} color="#fff" />
       </View>
     );
   }
@@ -44,8 +44,8 @@ export const LectureBoard: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <BookList 
-        books={books} 
+      <BookList
+        books={books}
         onBookPress={goToOeuvrePage}
       />
     </View>
