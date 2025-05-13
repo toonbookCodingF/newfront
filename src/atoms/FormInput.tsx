@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet, ViewStyle, TextStyle } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ViewStyle, TextStyle, TouchableWithoutFeedback, Keyboard } from 'react-native';
 
 interface FormInputProps {
   label: string;
@@ -29,24 +29,30 @@ export const FormInput: React.FC<FormInputProps> = ({
   placeholderTextColor = '#aaa',
 }) => {
   return (
-    <View style={[styles.container, containerStyle]}>
-      <Text style={[styles.label, labelStyle]}>{label}</Text>
-      <TextInput
-        style={[
-          styles.input,
-          multiline && styles.multilineInput,
-          error && styles.inputError,
-          inputStyle
-        ]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={placeholderTextColor}
-        multiline={multiline}
-        numberOfLines={numberOfLines}
-      />
-      {error && <Text style={styles.errorText}>{error}</Text>}
-    </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={[styles.container, containerStyle]}>
+        <Text style={[styles.label, labelStyle]}>{label}</Text>
+        <TextInput
+          style={[
+            styles.input,
+            multiline && styles.multilineInput,
+            error && styles.inputError,
+            inputStyle
+          ]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={placeholderTextColor}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          autoCorrect={false}
+          spellCheck={false}
+          keyboardType="default"
+          returnKeyType="done"
+        />
+        {error && <Text style={styles.errorText}>{error}</Text>}
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -66,6 +72,7 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     backgroundColor: '#fff',
+    minHeight: 40,
   },
   multilineInput: {
     height: 100,
