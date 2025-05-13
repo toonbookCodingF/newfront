@@ -13,7 +13,7 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({ content, type = 't
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const isImage = type === 'image';
-  const imageUrl = isImage ? `http://localhost:3000/public${content}` : null;
+  const imageUrl = isImage ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${content}` : null;
 
   console.log('Image URL:', imageUrl);
 
