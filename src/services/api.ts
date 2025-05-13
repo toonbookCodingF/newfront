@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_CONFIG } from '../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const api = axios.create({
   baseURL: API_CONFIG.baseURL,
@@ -8,8 +9,8 @@ const api = axios.create({
 });
 
 // Intercepteur pour ajouter le token d'authentification
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+api.interceptors.request.use(async (config) => {
+  const token = await AsyncStorage.getItem('token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -19,11 +20,12 @@ api.interceptors.request.use((config) => {
 // Intercepteur pour gérer les erreurs
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response?.status === 401) {
       // Gérer la déconnexion
-      localStorage.removeItem('token');
-      window.location.href = '/login';
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('userData');
+      // Note: La redirection doit être gérée différemment dans React Native
     }
     return Promise.reject(error);
   }

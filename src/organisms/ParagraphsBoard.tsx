@@ -25,12 +25,9 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
   const navigation = useNavigation<ParagraphsBoardNavigationProp>();
   const { paragraphs, loading, error } = useParagraphs(chapterId);
 
-  const goToComments = () => {
+  const goToComments = (bookContentId: string) => {
     navigation.navigate('Comments', {
-      chapterId,
-      bookId,
-      chapterTitle,
-      bookTitle
+      bookContentId
     });
   };
 
@@ -65,7 +62,8 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
             <ParagraphCard
               key={paragraph.id}
               content={paragraph.content}
-              onCommentPress={goToComments}
+              id={paragraph.id.toString()}
+              onCommentPress={() => goToComments(paragraph.id.toString())}
             />
           ))
         ) : (

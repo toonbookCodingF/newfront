@@ -43,4 +43,11 @@ export const ENDPOINTS = {
   categories: {
     getAll: '/categories',
   },
+  comments: {
+    getAll: '/comments',
+    create: '/comments',
+    update: (id: string) => `/comments/${id}`,
+    getOne: (id: string) => `/comments/${id}`,
+    getAllCommentByBookContent: (bookContentId: string) => `/comments?bookContent_id=${bookContentId}`,
+  },
 }; 

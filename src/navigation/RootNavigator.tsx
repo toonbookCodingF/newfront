@@ -9,6 +9,7 @@ import MenuCreation from '../pages/menuCreation';
 import OeuvrePage from '../pages/OeuvrePage';
 import ParagraphsPage from '../pages/ParagraphsPage';
 import CreateChapterPage from '../pages/CreateChapterPage';
+import { CommentsPage } from '../pages/CommentsPage';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -28,6 +29,7 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="FormulaireCreation" component={FormulaireCreation} />
         <Stack.Screen name="OeuvrePage" component={OeuvrePage} />
         <Stack.Screen name="Paragraphs" component={ParagraphsPage} />
+        <Stack.Screen name="Comments" component={CommentsPage} />
         <Stack.Screen 
           name="CreateChapterPage" 
           component={CreateChapterPage}

@@ -18,10 +18,7 @@ export type RootStackParamList = {
     bookTitle: string;
   };
   Comments: {
-    chapterId: string;
-    bookId: string;
-    chapterTitle: string;
-    bookTitle: string;
+    bookContentId: string;
   };
 };
 
