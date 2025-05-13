@@ -8,6 +8,7 @@ import { FormInput } from '../atoms/FormInput';
 import { ImageUploadSection } from '../molecules/ImageUploadSection';
 import { apiFetch } from '../services/api/apiService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_CONFIG } from '../config/api';
 
 type UploadeOeuvreGraphNavigationProp = NativeStackNavigationProp<RootStackParamList, 'UploadeOeuvreGraph'>;
 
@@ -137,10 +138,13 @@ export default function UploadeOeuvreGraph() {
 
                 const response = await fetch(image.uri);
                 const blob = await response.blob();
-                const imageFile = new File([blob], image.fileName, { type: image.type });
 
                 const formData = new FormData();
-                formData.append('image', imageFile);
+                formData.append('image', {
+                    uri: Platform.OS === 'android' ? image.uri : image.uri.replace('file://', ''),
+                    type: image.type,
+                    name: image.fileName
+                } as any);
                 formData.append('chapter_id', chapterId.toString());
                 formData.append('type', 'image');
                 formData.append('order', (i + 1).toString());
@@ -153,39 +157,17 @@ export default function UploadeOeuvreGraph() {
                     type: image.type
                 });
 
-                const uploadResponse = await fetch('http://localhost:3000/api/bookcontents', {
+                const uploadResponse = await fetch(`${API_CONFIG.baseURL}/bookcontents`, {
                     method: 'POST',
                     headers: {
-                        'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json',
+                        'Content-Type': 'multipart/form-data',
                     },
-                    body: formData,
-                    signal: AbortSignal.timeout(30000)
-                }).catch(error => {
-                    if (error.name === 'AbortError') {
-                        throw new Error('Le temps d\'upload a dépassé la limite de 30 secondes');
-                    }
-                    if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                        throw new Error('Erreur de connexion au serveur. Vérifiez votre connexion internet.');
-                    }
-                    throw error;
+                    body: formData
                 });
 
                 if (!uploadResponse.ok) {
-                    let errorMessage = uploadResponse.statusText;
-                    try {
-                        const errorData = await uploadResponse.json();
-                        errorMessage = errorData.message || errorMessage;
-                    } catch (e) {
-                        console.error('Erreur lors de la lecture de la réponse d\'erreur:', e);
-                    }
-
-                    console.error('Erreur upload image:', {
-                        status: uploadResponse.status,
-                        statusText: uploadResponse.statusText,
-                        error: errorMessage
-                    });
-                    throw new Error(`Erreur upload image: ${errorMessage}`);
+                    throw new Error(`Erreur lors de l'upload de l'image ${i + 1}`);
                 }
 
                 const uploadData = await uploadResponse.json();

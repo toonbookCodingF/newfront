@@ -1,11 +1,10 @@
 import React, { useEffect } from 'react';
-import { View, Text, Pressable, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Pressable, Image, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { API_CONFIG } from '../config/api';
 
 interface ImageUploaderProps {
   cover: string;
-  onCoverChange: (cover: File) => void;
+  onCoverChange: (cover: any) => void;
   uploading: boolean;
   onUploadingChange: (uploading: boolean) => void;
 }
@@ -52,7 +51,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ['images'],
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 0.7,
         exif: true,
@@ -63,10 +62,15 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         try {
           validateImage(image);
           onUploadingChange(true);
-          const response = await fetch(image.uri);
-          const blob = await response.blob();
-          const file = new File([blob], `cover.${image.mimeType?.split('/')[1] || 'jpg'}`, { type: image.mimeType });
-          onCoverChange(file);
+
+          // Créer l'objet image pour FormData
+          const imageObject = {
+            uri: Platform.OS === 'android' ? image.uri : image.uri.replace('file://', ''),
+            type: image.mimeType || 'image/jpeg',
+            name: `cover.${image.mimeType?.split('/')[1] || 'jpg'}`
+          };
+
+          onCoverChange(imageObject);
         } catch (error) {
           console.error('Erreur sélection image :', error);
           Alert.alert('Erreur', error instanceof Error ? error.message : 'Une erreur est survenue lors de la sélection de l\'image.');

@@ -9,6 +9,7 @@ import { ImageUploader } from '../molecules/ImageUploader';
 import { WorkTypeSelector } from '../molecules/WorkTypeSelector';
 import { Ionicons } from '@expo/vector-icons';
 import { useCreateBook } from '../hooks/useCreateBook';
+import { API_CONFIG } from '../config/api';
 
 type CreateFormNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -68,7 +69,7 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
       formData.append('description', description || '');
       formData.append('category_id', category);
       formData.append('booktype_id', bookType?.id?.toString() || '');
-      formData.append('user_id', '1'); // À remplacer par l'ID de l'utilisateur connecté
+      formData.append('user_id', '1');
       formData.append('status', 'draft');
 
       console.log('Données du livre avant envoi:', {
@@ -82,11 +83,7 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
       });
 
       if (cover) {
-        console.log('Ajout de la cover au FormData:', {
-          name: cover.name,
-          type: cover.type,
-          size: cover.size
-        });
+        console.log('Ajout de la cover au FormData:', cover);
         formData.append('cover', cover);
       }
 
@@ -96,8 +93,7 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
           console.log('Livre créé avec succès:', {
             bookId,
             title,
-            hasCover: !!cover,
-            coverUrl: coverUrl
+            hasCover: !!cover
           });
           if (type === 1) {
             navigation.navigate('UploadeOeuvreGraph', { bookId: bookId.toString() });
@@ -126,11 +122,9 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
     onBack();
   };
 
-  const handleCoverChange = (file: File) => {
+  const handleCoverChange = (file: any) => {
     setCover(file);
-    const previewUrl = URL.createObjectURL(file);
-    setCoverPreview(previewUrl);
-    setCoverUrl(previewUrl);
+    setCoverPreview(file.uri);
   };
 
   if (type === null) {
