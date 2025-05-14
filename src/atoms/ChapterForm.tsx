@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 
 interface ChapterFormProps {
   chapterTitle: string;
@@ -15,27 +15,29 @@ export const ChapterForm: React.FC<ChapterFormProps> = ({
   onContentChange,
 }) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.inputLabel}>Nom du chapitre</Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder="Ex: Chapitre 1 – L'aventure commence"
-        placeholderTextColor="#aaa"
-        value={chapterTitle}
-        onChangeText={onChapterTitleChange}
-      />
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={styles.container}>
+        <Text style={styles.inputLabel}>Nom du chapitre</Text>
+        <TextInput
+          style={styles.textInput}
+          placeholder="Ex: Chapitre 1 – L'aventure commence"
+          placeholderTextColor="#aaa"
+          value={chapterTitle}
+          onChangeText={onChapterTitleChange}
+        />
 
-      <Text style={styles.inputLabel}>Contenu du chapitre</Text>
-      <TextInput
-        style={[styles.textInput, styles.contentInput]}
-        placeholder="Écris ton texte ici..."
-        placeholderTextColor="#aaa"
-        multiline
-        value={content}
-        onChangeText={onContentChange}
-        textAlignVertical="top"
-      />
-    </View>
+        <Text style={styles.inputLabel}>Contenu du chapitre</Text>
+        <TextInput
+          style={[styles.textInput, styles.contentInput]}
+          placeholder="Écris ton texte ici..."
+          placeholderTextColor="#aaa"
+          multiline
+          value={content}
+          onChangeText={onContentChange}
+          textAlignVertical="top"
+        />
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
