@@ -33,6 +33,7 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id }) => {
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState('');
   const [cover, setCover] = useState<any>(null);
+  const [tempCoverPreview, setTempCoverPreview] = useState<string | undefined>(undefined);
   const [uploading, setUploading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
@@ -61,8 +62,20 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id }) => {
       setTitle(book.title);
       setDescription(book.description);
       setCategory(book.category_id?.toString() || '');
+      setTempCoverPreview(book.coverimage);
     }
   }, [book]);
+
+  // Mettre à jour l'aperçu quand une nouvelle couverture est sélectionnée
+  const handleCoverChange = (newCover: any) => {
+    setCover(newCover);
+    if (newCover && typeof newCover === 'object') {
+      // Utiliser directement l'URI de l'image
+      setTempCoverPreview(newCover.uri);
+    } else {
+      setTempCoverPreview(undefined);
+    }
+  };
 
   const handleUpdate = async () => {
     try {
@@ -79,6 +92,8 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id }) => {
       };
 
       await updateBook(id, updateData);
+      // Réinitialiser l'aperçu temporaire après la mise à jour
+      setTempCoverPreview(undefined);
       Alert.alert('Succès', 'Le livre a été mis à jour avec succès');
       setIsEditing(false);
     } catch (err) {
@@ -162,8 +177,8 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id }) => {
           />
 
           <ImageUploader
-            cover={book.coverimage}
-            onCoverChange={setCover}
+            cover={tempCoverPreview}
+            onCoverChange={handleCoverChange}
             uploading={uploading}
             onUploadingChange={setUploading}
           />
@@ -187,7 +202,7 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id }) => {
             <Ionicons name="create-outline" size={24} color="#fff" />
           </TouchableOpacity>
 
-          <BookCover cover={book.coverimage} />
+          <BookCover cover={tempCoverPreview || book?.coverimage} />
 
           <ScrollView contentContainerStyle={styles.content}>
             <Text style={styles.title}>{book.title}</Text>
