@@ -10,6 +10,7 @@ import { WorkTypeSelector } from '../molecules/WorkTypeSelector';
 import { Ionicons } from '@expo/vector-icons';
 import { useCreateBook } from '../hooks/useCreateBook';
 import { API_CONFIG } from '../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type CreateFormNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -21,6 +22,21 @@ interface Category {
 interface CreateFormProps {
   onBack: () => void;
 }
+
+// Fonction utilitaire pour décoder le token JWT
+const decodeToken = (token: string) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map(c => {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    console.error('Erreur lors du décodage du token:', error);
+    return null;
+  }
+};
 
 export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
   const navigation = useNavigation<CreateFormNavigationProp>();
@@ -64,12 +80,26 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
         return;
       }
 
+      // Récupérer et décoder le token
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('Non authentifié. Veuillez vous reconnecter.');
+      }
+
+      const decodedToken = decodeToken(token);
+      if (!decodedToken || !decodedToken.id) {
+        throw new Error('Token invalide');
+      }
+
+      const userId = decodedToken.id;
+      console.log('ID utilisateur extrait du token:', userId);
+
       const formData = new FormData();
       formData.append('title', title);
       formData.append('description', description || '');
       formData.append('category_id', category);
       formData.append('booktype_id', bookType?.id?.toString() || '');
-      formData.append('user_id', '1');
+      formData.append('user_id', userId.toString());  // Utiliser l'ID de l'utilisateur connecté
       formData.append('status', 'draft');
 
       console.log('Données du livre avant envoi:', {
@@ -77,7 +107,7 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
         description,
         category_id: category,
         booktype_id: bookType?.id,
-        user_id: '1',
+        user_id: userId,  // Log de l'ID utilisateur réel
         status: 'draft',
         hasCover: !!cover
       });
@@ -93,7 +123,8 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
           console.log('Livre créé avec succès:', {
             bookId,
             title,
-            hasCover: !!cover
+            hasCover: !!cover,
+            userId  // Ajout de l'ID utilisateur dans les logs
           });
           if (type === 1) {
             navigation.navigate('UploadeOeuvreGraph', { bookId: bookId.toString() });
@@ -238,4 +269,4 @@ const styles = StyleSheet.create({
     color: '#d32f2f',
     fontSize: 14,
   },
-}); 
+});
