@@ -58,7 +58,51 @@ const MyBooks: React.FC = () => {
                             Alert.alert('Succès', 'Le livre a été supprimé avec succès');
                         } catch (err: any) {
                             console.error('Erreur lors de la suppression:', err);
-                            Alert.alert('Erreur', 'Impossible de supprimer le livre');
+
+                            // Gestion spécifique des erreurs
+                            if (err.message.includes('Session expirée')) {
+                                Alert.alert(
+                                    'Session expirée',
+                                    'Votre session a expiré. Veuillez vous reconnecter.',
+                                    [
+                                        {
+                                            text: 'OK',
+                                            onPress: () => navigation.navigate('Auth')
+                                        }
+                                    ]
+                                );
+                            } else if (err.message.includes('non authentifié')) {
+                                Alert.alert(
+                                    'Non authentifié',
+                                    'Vous devez être connecté pour effectuer cette action.',
+                                    [
+                                        {
+                                            text: 'Se connecter',
+                                            onPress: () => navigation.navigate('Auth')
+                                        },
+                                        {
+                                            text: 'Annuler',
+                                            style: 'cancel'
+                                        }
+                                    ]
+                                );
+                            } else if (err.message.includes('pas autorisé')) {
+                                Alert.alert(
+                                    'Action non autorisée',
+                                    'Vous n\'êtes pas autorisé à supprimer ce livre.',
+                                    [
+                                        {
+                                            text: 'OK',
+                                            style: 'cancel'
+                                        }
+                                    ]
+                                );
+                            } else {
+                                Alert.alert(
+                                    'Erreur',
+                                    'Une erreur est survenue lors de la suppression du livre. Veuillez réessayer.'
+                                );
+                            }
                         }
                     }
                 }

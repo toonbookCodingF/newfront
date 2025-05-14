@@ -28,18 +28,40 @@ export interface UpdateBookData extends Partial<CreateBookData> { }
 
 const getAuthHeaders = async () => {
     const token = await AsyncStorage.getItem('token');
-    return {
+    console.log('Token récupéré:', token ? 'Token présent' : 'Token manquant');
+
+    if (!token) {
+        throw new Error('Non authentifié. Veuillez vous reconnecter.');
+    }
+
+    const headers = {
         ...API_CONFIG.headers,
-        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        'Authorization': `Bearer ${token}`
     };
+
+    console.log('Headers de la requête:', {
+        ...headers,
+        'Authorization': 'Bearer [TOKEN_MASQUÉ]' // On masque le token dans les logs
+    });
+
+    return headers;
 };
 
 const handleResponse = async (response: Response) => {
     if (!response.ok) {
-        if (response.status === 401) {
-            throw new Error('Token manquant ou invalide');
-        }
         const error = await response.json();
+        console.log('Réponse d\'erreur du serveur:', {
+            status: response.status,
+            message: error.message,
+            headers: response.headers
+        });
+
+        if (response.status === 401) {
+            throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        if (response.status === 403) {
+            throw new Error('Vous n\'êtes pas autorisé à effectuer cette action.');
+        }
         throw new Error(error.message || 'Une erreur est survenue');
     }
     const data = await response.json();
@@ -99,12 +121,21 @@ export const bookService = {
     },
 
     delete: async (id: string): Promise<void> => {
-        const headers = await getAuthHeaders();
-        const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.delete(id)}`, {
-            method: 'DELETE',
-            headers,
-        });
-        return handleResponse(response);
+        try {
+            console.log('Tentative de suppression du livre:', id);
+            const headers = await getAuthHeaders();
+
+            const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.delete(id)}`, {
+                method: 'DELETE',
+                headers,
+            });
+
+            console.log('Statut de la réponse:', response.status);
+            return handleResponse(response);
+        } catch (error) {
+            console.error('Erreur détaillée lors de la suppression:', error);
+            throw error;
+        }
     },
 
     getByName: async (name: string, limit: number = 10, page: number = 1): Promise<Book[]> => {
