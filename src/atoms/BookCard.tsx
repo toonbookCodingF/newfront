@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Pressable, Image, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Book } from '../services/api/books';
 
 interface BookCardProps {
@@ -31,7 +32,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onPress }) => {
           />
         ) : (
           <View style={styles.placeholderCover}>
-            <Text style={styles.placeholderText}>Pas de couverture</Text>
+            <Ionicons name="book-outline" size={60} color="#666" />
           </View>
         )}
       </View>
@@ -64,13 +65,9 @@ const styles = StyleSheet.create({
   placeholderCover: {
     width: '100%',
     height: '100%',
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '#f0f0f0',
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  placeholderText: {
-    color: '#666',
-    fontSize: 14,
   },
   title: {
     fontSize: 16,
