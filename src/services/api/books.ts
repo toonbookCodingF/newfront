@@ -12,6 +12,7 @@ export interface Book {
     booktype_id: number | null;
     user_id: number;
     status: string;
+    cover?: string;
 }
 
 export interface CreateBookData {
