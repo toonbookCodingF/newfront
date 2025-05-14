@@ -13,6 +13,10 @@ interface Book {
   description: string;
   coverimage: string;
   status: string;
+  category_id?: number;
+  booktype_id: number | null;
+  user_id: number;
+  cover?: string;
 }
 
 export const useOeuvre = (bookId: string) => {
