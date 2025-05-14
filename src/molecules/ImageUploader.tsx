@@ -3,7 +3,7 @@ import { View, Text, Pressable, Image, StyleSheet, ActivityIndicator, Alert, Pla
 import * as ImagePicker from 'expo-image-picker';
 
 interface ImageUploaderProps {
-  cover: string;
+  cover?: string;
   onCoverChange: (cover: any) => void;
   uploading: boolean;
   onUploadingChange: (uploading: boolean) => void;
@@ -55,6 +55,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         allowsEditing: true,
         quality: 0.7,
         exif: true,
+        presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
       });
 
       if (!result.canceled) {
