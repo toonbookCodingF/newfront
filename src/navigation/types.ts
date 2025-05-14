@@ -11,6 +11,7 @@ export type RootStackParamList = {
   };
   LecturePage: undefined;
   FormulaireCreation: undefined;
+  MyBooks: undefined;
   Paragraphs: {
     chapterId: string;
     bookId: string;

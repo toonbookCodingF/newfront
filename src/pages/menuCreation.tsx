@@ -12,7 +12,7 @@ const MenuCreation: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
@@ -31,9 +31,9 @@ const MenuCreation: React.FC = () => {
         <Text style={styles.descriptionCardText}>Reprendre là où vous vous êtes arrêté</Text>
       </Pressable>
 
-      <Pressable style={styles.card} onPress={() => navigation.navigate('UploadeOeuvreGraph', { bookId: '' })}>
-        <Text style={styles.cardText}>📥 Importer une œuvre graphique</Text>
-        <Text style={styles.descriptionCardText}>Ajouter un fichier existant</Text>
+      <Pressable style={styles.card} onPress={() => navigation.navigate('MyBooks')}>
+        <Text style={styles.cardText}>📚 Mes œuvres</Text>
+        <Text style={styles.descriptionCardText}>Retrouver vos créations, modifier ou supprimer</Text>
       </Pressable>
     </View>
   );
