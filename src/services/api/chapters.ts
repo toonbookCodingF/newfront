@@ -17,6 +17,19 @@ type CreateContentParams = {
   type?: string;
 };
 
+export type UpdateChapterParams = {
+  title?: string;
+  status?: string;
+  order?: number;
+};
+
+export type UpdateContentParams = {
+  content?: string;
+  order?: number;
+  image?: string | null;
+  type?: string;
+};
+
 const getAuthHeaders = async () => {
   const token = await AsyncStorage.getItem('token');
   return {
@@ -101,4 +114,46 @@ export const chapterService = {
       throw new Error(error.message || "Une erreur est survenue lors de la création du contenu");
     }
   },
+
+  async updateChapter(chapterId: number, params: UpdateChapterParams) {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.update(chapterId.toString())}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erreur lors de la mise à jour du chapitre');
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('Erreur lors de la mise à jour du chapitre:', error);
+      throw new Error(error.message || "Une erreur est survenue lors de la mise à jour du chapitre");
+    }
+  },
+
+  async updateContent(contentId: number, params: UpdateContentParams) {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.update(contentId.toString())}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erreur lors de la mise à jour du contenu');
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('Erreur lors de la mise à jour du contenu:', error);
+      throw new Error(error.message || "Une erreur est survenue lors de la mise à jour du contenu");
+    }
+  }
 }; 
