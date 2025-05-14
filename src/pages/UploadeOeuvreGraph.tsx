@@ -183,7 +183,7 @@ export default function UploadeOeuvreGraph() {
                         onPress: () => {
                             setImages([]);
                             setChapterTitle('');
-                            navigation.goBack();
+                            navigation.navigate('MenuCreation');
                         },
                     },
                 ]
