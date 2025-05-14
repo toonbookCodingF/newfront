@@ -6,6 +6,9 @@ interface ChapterFormProps {
   content: string;
   onChapterTitleChange: (text: string) => void;
   onContentChange: (text: string) => void;
+  onSave: () => void;
+  loading?: boolean;
+  error?: string | null;
 }
 
 export const ChapterForm: React.FC<ChapterFormProps> = ({
@@ -13,6 +16,9 @@ export const ChapterForm: React.FC<ChapterFormProps> = ({
   content,
   onChapterTitleChange,
   onContentChange,
+  onSave,
+  loading = false,
+  error = null,
 }) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
@@ -35,6 +41,15 @@ export const ChapterForm: React.FC<ChapterFormProps> = ({
           value={content}
           onChangeText={onContentChange}
           textAlignVertical="top"
+        />
+
+        {error && <Text style={styles.errorText}>{error}</Text>}
+
+        <TextInput
+          style={[styles.textInput, styles.saveButton]}
+          value={loading ? 'Enregistrement...' : 'Enregistrer le chapitre'}
+          onPressIn={onSave}
+          editable={!loading}
         />
       </View>
     </TouchableWithoutFeedback>
@@ -60,5 +75,17 @@ const styles = StyleSheet.create({
   },
   contentInput: {
     height: 400,
+  },
+  errorText: {
+    color: '#ff6b6b',
+    marginTop: 10,
+    fontSize: 14,
+  },
+  saveButton: {
+    backgroundColor: '#FF69B4',
+    color: '#fff',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    marginTop: 20,
   },
 }); 
