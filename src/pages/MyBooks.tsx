@@ -169,6 +169,16 @@ const MyBooks: React.FC = () => {
         }
     };
 
+    const handleChapterPress = (chapter: any) => {
+        navigation.navigate('Paragraphs', {
+            chapterId: chapter.id,
+            bookId: chapter.book_id,
+            chapterTitle: chapter.title,
+            bookTitle: chapter.book_title,
+            fromMyBooks: true
+        });
+    };
+
     const renderBookItem = ({ item }: { item: Book }) => (
         <View style={styles.bookCard}>
             <View style={styles.bookInfo}>
@@ -190,7 +200,10 @@ const MyBooks: React.FC = () => {
             <View style={styles.actionButtons}>
                 <TouchableOpacity
                     style={[styles.actionButton, styles.editButton]}
-                    onPress={() => navigation.navigate('OeuvrePage', { id: item.id.toString() })}
+                    onPress={() => navigation.navigate('OeuvrePage', {
+                        id: item.id.toString(),
+                        fromMyBooks: true
+                    })}
                 >
                     <Ionicons name="create-outline" size={24} color="#fff" />
                 </TouchableOpacity>

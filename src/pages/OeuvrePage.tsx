@@ -1,17 +1,20 @@
 import React from 'react';
 import { View, TouchableOpacity } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { OeuvreBoard } from '../organisms/OeuvreBoard';
 import { Ionicons } from '@expo/vector-icons';
+import { RootStackParamList } from '../navigation/types';
+
+type OeuvrePageRouteProp = RouteProp<RootStackParamList, 'OeuvrePage'>;
 
 const OeuvrePage: React.FC = () => {
-  const route = useRoute();
+  const route = useRoute<OeuvrePageRouteProp>();
   const navigation = useNavigation();
-  const { id } = route.params as { id: string };
+  const { id, fromMyBooks } = route.params;
 
   return (
     <View style={{ flex: 1 }}>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={{
           position: 'absolute',
           top: 40,
@@ -25,6 +28,7 @@ const OeuvrePage: React.FC = () => {
       </TouchableOpacity>
       <OeuvreBoard
         id={id}
+        fromMyBooks={fromMyBooks}
       />
     </View>
   );

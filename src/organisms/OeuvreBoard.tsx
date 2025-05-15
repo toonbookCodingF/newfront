@@ -22,9 +22,10 @@ interface Category {
 
 interface OeuvreBoardProps {
   id: string;
+  fromMyBooks?: boolean;
 }
 
-export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id }) => {
+export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = false }) => {
   const navigation = useNavigation<OeuvreBoardNavigationProp>();
   const { book, chapters, loading, error } = useOeuvre(id);
   const { updateBook, isLoading: isUpdating } = useUpdateBook();
@@ -107,7 +108,8 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id }) => {
       chapterId: chapterId.toString(),
       bookId: id,
       chapterTitle,
-      bookTitle: book?.title || ''
+      bookTitle: book?.title || '',
+      fromMyBooks
     });
   };
 
@@ -195,12 +197,14 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id }) => {
         </ScrollView>
       ) : (
         <>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => setIsEditing(true)}
-          >
-            <Ionicons name="create-outline" size={24} color="#fff" />
-          </TouchableOpacity>
+          {fromMyBooks && (
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => setIsEditing(true)}
+            >
+              <Ionicons name="create-outline" size={24} color="#fff" />
+            </TouchableOpacity>
+          )}
 
           <BookCover cover={tempCoverPreview || book?.coverimage} />
 

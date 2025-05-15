@@ -22,7 +22,8 @@ export const LectureBoard: React.FC = () => {
 
   const goToOeuvrePage = (book: Book) => {
     navigation.navigate('OeuvrePage', {
-      id: book.id
+      id: book.id,
+      fromMyBooks: false
     });
   };
 

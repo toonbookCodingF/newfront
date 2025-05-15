@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert, TextInput } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,6 +9,7 @@ import { useParagraphs } from '../hooks/useParagraphs';
 import { useUpdateChapter } from '../hooks/useUpdateChapter';
 
 type ParagraphsBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type ParagraphsRouteProp = RouteProp<RootStackParamList, 'Paragraphs'>;
 
 interface ParagraphsBoardProps {
   chapterId: string;
@@ -21,15 +22,19 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
   chapterId,
   bookId,
   chapterTitle,
-  bookTitle
+  bookTitle,
 }) => {
   const navigation = useNavigation<ParagraphsBoardNavigationProp>();
+  const route = useRoute<ParagraphsRouteProp>();
   const { paragraphs, loading, error } = useParagraphs(chapterId);
   const { updateChapter, updateContent, isLoading: isUpdating } = useUpdateChapter();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(chapterTitle);
   const [editingParagraphId, setEditingParagraphId] = useState<number | null>(null);
   const [editedContent, setEditedContent] = useState('');
+
+  // Déterminer la source en fonction de la route précédente
+  const source = route.params.fromMyBooks ? 'myBooks' : 'reading';
 
   const goToComments = (bookContentId: string) => {
     navigation.navigate('Comments', {
@@ -117,9 +122,11 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
         ) : (
           <View style={styles.titleContainer}>
             <Text style={styles.title}>{chapterTitle} - {bookTitle}</Text>
-            <TouchableOpacity onPress={() => setIsEditing(true)}>
-              <Ionicons name="create-outline" size={20} color="white" />
-            </TouchableOpacity>
+            {source === 'myBooks' && (
+              <TouchableOpacity onPress={() => setIsEditing(true)}>
+                <Ionicons name="create-outline" size={20} color="white" />
+              </TouchableOpacity>
+            )}
           </View>
         )}
       </View>
@@ -164,13 +171,12 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
                     type={paragraph.type}
                     id={paragraph.id.toString()}
                     onCommentPress={() => goToComments(paragraph.id.toString())}
+                    source={source}
+                    onEditPress={source === 'myBooks' ? () => startEditingContent(paragraph) : undefined}
+                    onDeletePress={source === 'myBooks' ? () => {
+                      // Implement the delete logic here
+                    } : undefined}
                   />
-                  <TouchableOpacity
-                    style={styles.editParagraphButton}
-                    onPress={() => startEditingContent(paragraph)}
-                  >
-                    <Ionicons name="create-outline" size={20} color="white" />
-                  </TouchableOpacity>
                 </View>
               )}
             </View>
