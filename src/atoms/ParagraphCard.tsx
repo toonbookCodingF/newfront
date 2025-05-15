@@ -68,9 +68,11 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({
       <View style={styles.buttonContainer}>
         {canEdit && (
           <>
-            <TouchableOpacity style={[styles.actionButton, styles.editButton]} onPress={onEditPress}>
-              <Ionicons name="pencil-outline" size={24} color="#fff" />
-            </TouchableOpacity>
+            {!isImage && (
+              <TouchableOpacity style={[styles.actionButton, styles.editButton]} onPress={onEditPress}>
+                <Ionicons name="pencil-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={onDeletePress}>
               <Ionicons name="trash-outline" size={24} color="#fff" />
             </TouchableOpacity>
