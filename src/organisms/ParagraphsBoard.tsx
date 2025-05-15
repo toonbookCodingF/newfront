@@ -8,9 +8,21 @@ import { ParagraphCard } from '../atoms/ParagraphCard';
 import { useParagraphs } from '../hooks/useParagraphs';
 import { useUpdateChapter } from '../hooks/useUpdateChapter';
 import { useDeleteContent } from '../hooks/useDeleteContent';
+import * as ImagePicker from 'expo-image-picker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_CONFIG, ENDPOINTS } from '../config/api';
 
 type ParagraphsBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ParagraphsRouteProp = RouteProp<RootStackParamList, 'Paragraphs'>;
+
+interface Paragraph {
+  id: number;
+  content: string;
+  type: string;
+  order: number;
+  chapter_id: number;
+  createdat: string;
+}
 
 interface ParagraphsBoardProps {
   chapterId: string;
@@ -120,6 +132,104 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
     }
   };
 
+  const handleAddImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission requise',
+          'Désolé, nous avons besoin de l\'accès à votre galerie pour télécharger des images.'
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+        presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
+      });
+
+      if (!result.canceled) {
+        console.log('Image sélectionnée:', result.assets[0]);
+        const asset = result.assets[0];
+
+        // Trouver le plus grand ordre existant
+        const maxOrder = paragraphs.reduce((max, paragraph) =>
+          Math.max(max, (paragraph as any).order || 0), 0);
+
+        // Créer le FormData
+        const formData = new FormData();
+        formData.append('content', '');
+        formData.append('chapter_id', chapterId);
+        formData.append('type', 'image');
+        formData.append('order', (maxOrder + 1).toString());
+
+        // Modifier la façon dont nous ajoutons l'image
+        const imageUri = asset.uri;
+        const imageName = imageUri.split('/').pop() || `image_${Date.now()}.jpg`;
+        const imageType = 'image/jpeg';
+
+        formData.append('image', {
+          uri: imageUri,
+          type: imageType,
+          name: imageName
+        } as any);
+
+        console.log('FormData créé avec les champs:', {
+          content: '',
+          chapter_id: chapterId,
+          type: 'image',
+          order: (maxOrder + 1).toString(),
+          image: {
+            uri: imageUri,
+            type: imageType,
+            name: imageName
+          }
+        });
+
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+          throw new Error('Non authentifié. Veuillez vous reconnecter.');
+        }
+
+        console.log('Envoi de la requête à:', `${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`);
+
+        // Ajouter un délai pour éviter les requêtes simultanées
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        const uploadResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data',
+          },
+          body: formData
+        });
+
+        console.log('Statut de la réponse:', uploadResponse.status);
+        const responseText = await uploadResponse.text();
+        console.log('Contenu de la réponse:', responseText);
+
+        if (!uploadResponse.ok) {
+          throw new Error(`Erreur ${uploadResponse.status}: ${responseText}`);
+        }
+
+        // Attendre un peu avant de rafraîchir
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await refresh();
+        Alert.alert('Succès', 'L\'image a été ajoutée avec succès');
+      }
+    } catch (err) {
+      console.error('Erreur détaillée lors de l\'ajout de l\'image:', err);
+      Alert.alert(
+        'Erreur',
+        err instanceof Error ? err.message : 'Une erreur est survenue lors de l\'ajout de l\'image'
+      );
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -163,9 +273,14 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
           <View style={styles.titleContainer}>
             <Text style={styles.title}>{chapterTitle} - {bookTitle}</Text>
             {source === 'myBooks' && (
-              <TouchableOpacity onPress={() => setIsEditing(true)}>
-                <Ionicons name="create-outline" size={20} color="white" />
-              </TouchableOpacity>
+              <View style={styles.headerButtons}>
+                <TouchableOpacity onPress={() => setIsEditing(true)}>
+                  <Ionicons name="create-outline" size={20} color="white" />
+                </TouchableOpacity>
+                <TouchableOpacity onPress={handleAddImage} style={styles.addImageButton}>
+                  <Ionicons name="image-outline" size={20} color="white" />
+                </TouchableOpacity>
+              </View>
             )}
           </View>
         )}
@@ -327,5 +442,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#4CAF50',
     padding: 5,
     borderRadius: 15,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 15,
+  },
+  addImageButton: {
+    marginLeft: 10,
   },
 }); 
