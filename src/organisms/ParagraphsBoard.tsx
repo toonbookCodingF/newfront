@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { ParagraphCard } from '../atoms/ParagraphCard';
 import { useParagraphs } from '../hooks/useParagraphs';
 import { useUpdateChapter } from '../hooks/useUpdateChapter';
+import { useDeleteContent } from '../hooks/useDeleteContent';
 
 type ParagraphsBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ParagraphsRouteProp = RouteProp<RootStackParamList, 'Paragraphs'>;
@@ -26,8 +27,9 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
 }) => {
   const navigation = useNavigation<ParagraphsBoardNavigationProp>();
   const route = useRoute<ParagraphsRouteProp>();
-  const { paragraphs, loading, error } = useParagraphs(chapterId);
+  const { paragraphs, loading, error, refresh } = useParagraphs(chapterId);
   const { updateChapter, updateContent, isLoading: isUpdating } = useUpdateChapter();
+  const { deleteContent, isLoading: isDeleting } = useDeleteContent();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(chapterTitle);
   const [editingParagraphId, setEditingParagraphId] = useState<number | null>(null);
@@ -78,6 +80,44 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
   const startEditingContent = (paragraph: any) => {
     setEditingParagraphId(paragraph.id);
     setEditedContent(paragraph.content);
+  };
+
+  const handleDeleteContent = async (paragraphId: number) => {
+    try {
+      Alert.alert(
+        'Confirmer la suppression',
+        'Êtes-vous sûr de vouloir supprimer ce contenu ? Cette action est irréversible.',
+        [
+          {
+            text: 'Annuler',
+            style: 'cancel'
+          },
+          {
+            text: 'Supprimer',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await deleteContent(paragraphId);
+                await refresh(); // Rafraîchir la liste des paragraphes
+                Alert.alert('Succès', 'Le contenu a été supprimé avec succès');
+              } catch (err) {
+                console.error('Erreur lors de la suppression:', err);
+                Alert.alert(
+                  'Erreur',
+                  err instanceof Error ? err.message : 'Une erreur est survenue lors de la suppression'
+                );
+              }
+            }
+          }
+        ]
+      );
+    } catch (err) {
+      console.error('Erreur lors de la confirmation de suppression:', err);
+      Alert.alert(
+        'Erreur',
+        err instanceof Error ? err.message : 'Une erreur est survenue lors de la confirmation'
+      );
+    }
   };
 
   if (loading) {
@@ -173,9 +213,7 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
                     onCommentPress={() => goToComments(paragraph.id.toString())}
                     source={source}
                     onEditPress={source === 'myBooks' ? () => startEditingContent(paragraph) : undefined}
-                    onDeletePress={source === 'myBooks' ? () => {
-                      // Implement the delete logic here
-                    } : undefined}
+                    onDeletePress={source === 'myBooks' ? () => handleDeleteContent(paragraph.id) : undefined}
                   />
                 </View>
               )}
