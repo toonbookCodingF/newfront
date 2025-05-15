@@ -8,6 +8,7 @@ export type RootStackParamList = {
   CreateChapterPage: { bookId: string };
   OeuvrePage: {
     id: string;
+    fromMyBooks?: boolean;
   };
   LecturePage: undefined;
   FormulaireCreation: undefined;
@@ -17,6 +18,7 @@ export type RootStackParamList = {
     bookId: string;
     chapterTitle: string;
     bookTitle: string;
+    fromMyBooks?: boolean;
   };
   Comments: {
     chapterId: string;

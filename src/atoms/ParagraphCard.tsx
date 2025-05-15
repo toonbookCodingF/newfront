@@ -7,13 +7,24 @@ interface ParagraphCardProps {
   content: string;
   type?: string;
   onCommentPress: () => void;
+  source?: 'myBooks' | 'reading' | 'other';
+  onEditPress?: () => void;
+  onDeletePress?: () => void;
 }
 
-export const ParagraphCard: React.FC<ParagraphCardProps> = ({ content, type = 'text', onCommentPress }) => {
+export const ParagraphCard: React.FC<ParagraphCardProps> = ({
+  content,
+  type = 'text',
+  onCommentPress,
+  source = 'other',
+  onEditPress,
+  onDeletePress
+}) => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const isImage = type === 'image';
   const imageUrl = isImage ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${content}` : null;
+  const canEdit = source === 'myBooks';
 
   console.log('Image URL:', imageUrl);
 
@@ -54,9 +65,21 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({ content, type = 't
       ) : (
         <Text style={styles.text}>{content}</Text>
       )}
-      <TouchableOpacity style={styles.commentButton} onPress={onCommentPress}>
-        <Ionicons name="chatbubble-outline" size={24} color="#fff" />
-      </TouchableOpacity>
+      <View style={styles.buttonContainer}>
+        {canEdit && (
+          <>
+            <TouchableOpacity style={[styles.actionButton, styles.editButton]} onPress={onEditPress}>
+              <Ionicons name="pencil-outline" size={24} color="#fff" />
+            </TouchableOpacity>
+            <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={onDeletePress}>
+              <Ionicons name="trash-outline" size={24} color="#fff" />
+            </TouchableOpacity>
+          </>
+        )}
+        <TouchableOpacity style={[styles.actionButton, styles.commentButton]} onPress={onCommentPress}>
+          <Ionicons name="chatbubble-outline" size={24} color="#fff" />
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -114,12 +137,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
-  commentButton: {
+  buttonContainer: {
     position: 'absolute',
     bottom: 10,
     right: 10,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
     backgroundColor: '#A020F0',
     padding: 8,
     borderRadius: 20,
+  },
+  editButton: {
+    backgroundColor: '#4B0082',
+  },
+  deleteButton: {
+    backgroundColor: '#8B0000',
+  },
+  commentButton: {
+    backgroundColor: '#A020F0',
   },
 }); 
