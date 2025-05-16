@@ -40,6 +40,25 @@ export type MainTabParamList = {
 };
 
 export type LibraryStackParamList = {
-  Library: undefined;
+  LibraryMain: undefined;
   MenuCreation: undefined;
+  FormulaireCreation: undefined;
+  OeuvrePage: {
+    id: string;
+    fromMyBooks?: boolean;
+  };
+  Paragraphs: {
+    chapterId: string;
+    bookId: string;
+    chapterTitle: string;
+    bookTitle: string;
+    fromMyBooks?: boolean;
+  };
+  MyBooks: undefined;
+  CreateChapterPage: {
+    bookId: string;
+  };
+  UploadeOeuvreGraph: {
+    bookId: string;
+  };
 }; 
