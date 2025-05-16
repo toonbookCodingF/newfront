@@ -1,6 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { MainTabParamList } from './types';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { MainTabParamList, LibraryStackParamList } from './types';
 import HomePage from '../pages/HomePage';
 import ProfilePage from '../pages/ProfilePage';
 import SettingsPage from '../pages/SettingsPage';
@@ -8,9 +9,31 @@ import { LibraryPage } from '../organisms/LibraryPage';
 import { LectureBoard } from '../organisms/LectureBoard';
 import { SearchBoard } from '../organisms/SearchBoard';
 import { Ionicons } from '@expo/vector-icons';
-import { RegisterPage } from '../pages/RegisterPage';
+import FormulaireCreation from '../pages/FormulaireCreation';
+import MenuCreation from '../pages/menuCreation';
+import OeuvrePage from '../pages/OeuvrePage';
+import ParagraphsPage from '../pages/ParagraphsPage';
+import CreateChapterPage from '../pages/CreateChapterPage';
+import UploadeOeuvreGraph from '../pages/UploadeOeuvreGraph';
+import MyBooks from '../pages/MyBooks';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
+const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
+
+const LibraryStackNavigator = () => {
+  return (
+    <LibraryStack.Navigator screenOptions={{ headerShown: false }}>
+      <LibraryStack.Screen name="LibraryMain" component={LibraryPage} />
+      <LibraryStack.Screen name="MenuCreation" component={MenuCreation} />
+      <LibraryStack.Screen name="FormulaireCreation" component={FormulaireCreation} />
+      <LibraryStack.Screen name="OeuvrePage" component={OeuvrePage} />
+      <LibraryStack.Screen name="Paragraphs" component={ParagraphsPage} />
+      <LibraryStack.Screen name="MyBooks" component={MyBooks} />
+      <LibraryStack.Screen name="CreateChapterPage" component={CreateChapterPage} />
+      <LibraryStack.Screen name="UploadeOeuvreGraph" component={UploadeOeuvreGraph} />
+    </LibraryStack.Navigator>
+  );
+};
 
 export const MainNavigator: React.FC = () => {
   return (
@@ -33,7 +56,7 @@ export const MainNavigator: React.FC = () => {
       />
       <Tab.Screen
         name="Library"
-        component={LibraryPage}
+        component={LibraryStackNavigator}
         options={{
           title: 'Bibliothèque',
           tabBarIcon: ({ color, size }) => (
