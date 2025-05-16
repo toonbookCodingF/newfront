@@ -15,7 +15,7 @@ interface CreateChapterBoardProps {
 
 export const CreateChapterBoard: React.FC<CreateChapterBoardProps> = ({ bookId }) => {
   const navigation = useNavigation<NavigationProp>();
-  const { createChapter, isLoading, error } = useCreateChapter();
+  const { createChapter, createBookContent, isLoading, error } = useCreateChapter();
   const [chapterTitle, setChapterTitle] = useState('');
   const [content, setContent] = useState('');
 
@@ -31,14 +31,24 @@ export const CreateChapterBoard: React.FC<CreateChapterBoardProps> = ({ bookId }
         throw new Error('ID du livre invalide');
       }
 
-      await createChapter(numericBookId, chapterTitle);
+      // Créer le chapitre
+      const chapter = await createChapter(numericBookId, chapterTitle);
+
+      // Créer le contenu si du texte a été saisi
+      if (content.trim()) {
+        await createBookContent(chapter.id, content);
+      }
+
       Alert.alert(
         'Succès',
         'Chapitre créé avec succès !',
         [
           {
             text: 'OK',
-            onPress: () => navigation.navigate('MenuCreation'),
+            onPress: () => navigation.navigate('OeuvrePage', {
+              id: bookId,
+              fromMyBooks: true
+            }),
           }
         ]
       );
@@ -52,7 +62,10 @@ export const CreateChapterBoard: React.FC<CreateChapterBoardProps> = ({ bookId }
     <View style={styles.container}>
       <TouchableOpacity
         style={styles.backButton}
-        onPress={() => navigation.navigate('MenuCreation')}
+        onPress={() => navigation.navigate('OeuvrePage', {
+          id: bookId,
+          fromMyBooks: true
+        })}
       >
         <Ionicons name="arrow-back" size={24} color="#fff" />
       </TouchableOpacity>

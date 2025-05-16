@@ -37,4 +37,9 @@ export type MainTabParamList = {
   Search: undefined;
   Profile: undefined;
   Settings: undefined;
+};
+
+export type LibraryStackParamList = {
+  Library: undefined;
+  MenuCreation: undefined;
 }; 

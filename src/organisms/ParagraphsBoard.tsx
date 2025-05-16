@@ -8,6 +8,7 @@ import { ParagraphCard } from '../atoms/ParagraphCard';
 import { useParagraphs } from '../hooks/useParagraphs';
 import { useUpdateChapter } from '../hooks/useUpdateChapter';
 import { useDeleteContent } from '../hooks/useDeleteContent';
+import { useCreateChapter } from '../hooks/useCreateChapter';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
@@ -42,6 +43,7 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
   const { paragraphs, loading, error, refresh } = useParagraphs(chapterId);
   const { updateChapter, updateContent, isLoading: isUpdating } = useUpdateChapter();
   const { deleteContent, isLoading: isDeleting } = useDeleteContent();
+  const { createBookContent } = useCreateChapter();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(chapterTitle);
   const [editingParagraphId, setEditingParagraphId] = useState<number | null>(null);
@@ -230,6 +232,18 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
     }
   };
 
+  const handleAddContent = async () => {
+    try {
+      const defaultContent = 'Commencez à écrire votre histoire...';
+      await createBookContent(parseInt(chapterId), defaultContent);
+      await refresh();
+      Alert.alert('Succès', 'Un nouveau paragraphe a été créé. Vous pouvez maintenant le modifier.');
+    } catch (err: unknown) {
+      console.error('Erreur lors de la création du paragraphe:', err);
+      Alert.alert('Erreur', 'Une erreur est survenue lors de la création du paragraphe');
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.loaderContainer}>
@@ -335,7 +349,18 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
             </View>
           ))
         ) : (
-          <Text style={styles.noParagraphs}>Aucun contenu disponible.</Text>
+          <View style={styles.noContentContainer}>
+            <Text style={styles.noParagraphs}>Aucun contenu disponible.</Text>
+            {source === 'myBooks' && (
+              <TouchableOpacity
+                style={styles.addContentButton}
+                onPress={handleAddContent}
+              >
+                <Ionicons name="add-circle-outline" size={24} color="white" />
+                <Text style={styles.addContentButtonText}>Ajouter du contenu</Text>
+              </TouchableOpacity>
+            )}
+          </View>
         )}
       </ScrollView>
     </View>
@@ -387,11 +412,17 @@ const styles = StyleSheet.create({
     paddingBottom: 50,
     paddingTop: 20,
   },
+  noContentContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
   noParagraphs: {
-    color: 'white',
+    color: '#fff',
     fontSize: 16,
+    marginBottom: 20,
     textAlign: 'center',
-    marginTop: 20,
   },
   loaderContainer: {
     flex: 1,
@@ -449,5 +480,18 @@ const styles = StyleSheet.create({
   },
   addImageButton: {
     marginLeft: 10,
+  },
+  addContentButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#A020F0',
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  addContentButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    marginLeft: 8,
   },
 }); 
