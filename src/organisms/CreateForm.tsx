@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, ScrollView, StyleSheet, Alert, TouchableOpacity, Text } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useNavigation as useRootNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/types';
+import { CompositeNavigationProp } from '@react-navigation/native';
+import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
+import { MainTabParamList, LibraryStackParamList, RootStackParamList } from '../navigation/types';
 import { FormInput } from '../atoms/FormInput';
 import { CategoryPicker } from '../atoms/CategoryPicker';
 import { ImageUploader } from '../molecules/ImageUploader';
@@ -11,8 +14,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCreateBook } from '../hooks/useCreateBook';
 import { API_CONFIG } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useCreateChapter } from '../hooks/useCreateChapter';
 
-type CreateFormNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type CreateFormNavigationProp = CompositeNavigationProp<
+  BottomTabNavigationProp<MainTabParamList, 'Library'>,
+  NativeStackNavigationProp<LibraryStackParamList>
+>;
 
 interface Category {
   id: number;
@@ -40,6 +47,7 @@ const decodeToken = (token: string) => {
 
 export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
   const navigation = useNavigation<CreateFormNavigationProp>();
+  const rootNavigation = useRootNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [type, setType] = useState<number | null>(null);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -50,6 +58,7 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { categories, bookType, loading, fetchBookType, handleSubmit } = useCreateBook();
+  const { createChapter, createBookContent } = useCreateChapter();
 
   useEffect(() => {
     if (type === null) return;
@@ -92,7 +101,7 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
       }
 
       const userId = decodedToken.id;
-      console.log('ID utilisateur extrait du token:', userId);
+      console.log('[CREATE] ID utilisateur extrait du token:', userId);
 
       const formData = new FormData();
       formData.append('title', title);
@@ -102,7 +111,7 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
       formData.append('user_id', userId.toString());  // Utiliser l'ID de l'utilisateur connecté
       formData.append('status', 'draft');
 
-      console.log('Données du livre avant envoi:', {
+      console.log('[CREATE] Données du livre avant envoi:', {
         title,
         description,
         category_id: category,
@@ -113,28 +122,31 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
       });
 
       if (cover) {
-        console.log('Ajout de la cover au FormData:', cover);
+        console.log('[CREATE] Ajout de la cover au FormData:', cover);
         formData.append('cover', cover);
       }
 
       await handleSubmit(
         formData,
-        (bookId: number) => {
-          console.log('Livre créé avec succès:', {
+        async (bookId: number) => {
+          console.log('[CREATE] Livre créé avec succès:', {
             bookId,
             title,
             hasCover: !!cover,
-            userId  // Ajout de l'ID utilisateur dans les logs
+            userId
           });
           if (type === 1) {
-            navigation.navigate('UploadeOeuvreGraph', { bookId: bookId.toString() });
+            rootNavigation.navigate('UploadeOeuvreGraph', { bookId: bookId.toString() });
           } else {
-            navigation.navigate('CreateChapterPage', { bookId: bookId.toString() });
+            // Rediriger vers le formulaire de création de chapitre
+            rootNavigation.navigate('CreateChapterPage', {
+              bookId: bookId.toString()
+            });
           }
         }
       );
     } catch (err) {
-      console.error('Erreur lors de la création du livre:', err);
+      console.error('[CREATE] Erreur lors de la création du livre:', err);
       const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue lors de la création';
       setError(errorMessage);
       Alert.alert('Erreur', errorMessage);

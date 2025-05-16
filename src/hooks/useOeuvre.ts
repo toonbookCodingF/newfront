@@ -44,18 +44,18 @@ export const useOeuvre = (bookId: string) => {
         };
 
         // Fetch book details
-        console.log('Fetching book details from:', `${API_CONFIG.baseURL}${ENDPOINTS.books.getById(bookId)}`);
+        console.log('[FETCH] Fetching book details from:', `${API_CONFIG.baseURL}${ENDPOINTS.books.getById(bookId)}`);
         const bookResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getById(bookId)}`, {
           headers
         });
 
-        console.log('Book response status:', bookResponse.status);
+        console.log('[FETCH] Book response status:', bookResponse.status);
         const bookData = await bookResponse.json();
-        console.log('Book response data:', bookData);
-        console.log('Cover field from API:', bookData.cover);
+        console.log('[FETCH] Book response data:', bookData);
+        console.log('[FETCH] Cover field from API:', bookData.cover);
 
         if (!bookResponse.ok) {
-          throw new Error(`Erreur lors de la récupération du livre: ${bookData.message || bookResponse.statusText}`);
+          throw new Error(`[FETCH] Erreur lors de la récupération du livre: ${bookData.message || bookResponse.statusText}`);
         }
 
         // Format the book data to match the Book interface
@@ -64,25 +64,21 @@ export const useOeuvre = (bookId: string) => {
           coverimage: bookData.cover && bookData.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${bookData.cover}` : undefined
         };
 
-        console.log('Base URL:', API_CONFIG.imageBaseURL);
-        console.log('Static path:', API_CONFIG.staticPath);
-        console.log('Cover path:', bookData.cover);
-        console.log('Full cover URL:', formattedBook.coverimage);
-        console.log('Livre formaté:', formattedBook);
+        console.log('[FETCH] Livre formaté:', formattedBook);
         setBook(formattedBook);
 
         // Fetch chapters
-        console.log('Fetching chapters from:', `${API_CONFIG.baseURL}${ENDPOINTS.chapters.getByBookId(bookId)}`);
+        console.log('[FETCH] Fetching chapters from:', `${API_CONFIG.baseURL}${ENDPOINTS.chapters.getByBookId(bookId)}`);
         const chaptersResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.getByBookId(bookId)}`, {
           headers
         });
 
-        console.log('Chapters response status:', chaptersResponse.status);
+        console.log('[FETCH] Chapters response status:', chaptersResponse.status);
         const chaptersData = await chaptersResponse.json();
-        console.log('Chapters response data:', chaptersData);
+        console.log('[FETCH] Chapters response data:', chaptersData);
 
         if (!chaptersResponse.ok) {
-          throw new Error(`Erreur lors de la récupération des chapitres: ${chaptersData.message || chaptersResponse.statusText}`);
+          throw new Error(`[FETCH] Erreur lors de la récupération des chapitres: ${chaptersData.message || chaptersResponse.statusText}`);
         }
 
         setChapters(Array.isArray(chaptersData) ? chaptersData : chaptersData.data || []);
