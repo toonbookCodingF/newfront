@@ -1,3 +1,5 @@
+import { update } from "lodash";
+
 export const API_CONFIG = {
   baseURL: 'http://10.0.2.2:3000/api',
   timeout: 10000,
@@ -11,7 +13,8 @@ export const ENDPOINTS = {
   auth: {
     login: '/users/login',
     register: '/users/postUser',
-    logout: '/users/logout'
+    logout: '/users/logout',
+    getbyid: (id: string) => `/users/getById/${id}`,
   },
   user: {
     profile: '/users/profile',

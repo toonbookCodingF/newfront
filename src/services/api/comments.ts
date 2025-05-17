@@ -10,7 +10,7 @@ export interface Comment {
     parentComment_id?: number | null;
     like: number;
     visible: boolean;
-    created_at: string;
+    createdat: string;
     updated_at: string;
 }
 
@@ -164,6 +164,27 @@ export const commentService = {
                 Authorization: token ? `Bearer ${token}` : '',
             },
             body: JSON.stringify({ content }),
+        });
+        return handleResponse(response);
+    },
+
+    likeComment: async (id: string, currentLike: number, isLiked: boolean): Promise<Comment> => {
+        const token = await AsyncStorage.getItem('token');
+        if (!token) {
+            throw new Error('Utilisateur non connecté');
+        }
+
+        const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.comments.update(id)}`, {
+            method: 'PUT',
+            headers: {
+                ...API_CONFIG.headers,
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({
+                content: "Commentaire modifié",
+                visible: true,
+                like: isLiked ? currentLike - 1 : currentLike + 1
+            }),
         });
         return handleResponse(response);
     },

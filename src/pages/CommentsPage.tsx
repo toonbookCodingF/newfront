@@ -10,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface CommentWithUser extends Comment {
     user?: User;
     replies?: CommentWithUser[];
+    isLiked?: boolean;
 }
 
 type CommentsScreenRouteProp = RouteProp<RootStackParamList, 'Comments'>;
@@ -23,6 +24,38 @@ export const CommentsPage = () => {
     const route = useRoute<CommentsScreenRouteProp>();
     const navigation = useNavigation();
     const bookContentId = route.params.bookContentId;
+
+    // Fonction pour sauvegarder l'état des likes
+    const saveLikedComments = async (commentId: string, isLiked: boolean) => {
+        try {
+            const likedCommentsStr = await AsyncStorage.getItem('likedComments');
+            const likedComments = likedCommentsStr ? JSON.parse(likedCommentsStr) : {};
+            likedComments[commentId] = isLiked;
+            await AsyncStorage.setItem('likedComments', JSON.stringify(likedComments));
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde des likes:', error);
+        }
+    };
+
+    // Fonction pour charger l'état des likes
+    const loadLikedComments = async (comments: CommentWithUser[]): Promise<CommentWithUser[]> => {
+        try {
+            const likedCommentsStr = await AsyncStorage.getItem('likedComments');
+            const likedComments = likedCommentsStr ? JSON.parse(likedCommentsStr) : {};
+            
+            return comments.map(comment => ({
+                ...comment,
+                isLiked: likedComments[comment.id] || false,
+                replies: comment.replies?.map(reply => ({
+                    ...reply,
+                    isLiked: likedComments[reply.id] || false
+                }))
+            }));
+        } catch (error) {
+            console.error('Erreur lors du chargement des likes:', error);
+            return comments;
+        }
+    };
 
     useEffect(() => {
         loadComments();
@@ -42,16 +75,13 @@ export const CommentsPage = () => {
             const response = await commentService.getCommentsByBookContent(bookContentId);
             console.log('Commentaires bruts reçus:', JSON.stringify(response, null, 2));
 
-            // Récupérer les données utilisateur depuis AsyncStorage
             const userDataStr = await AsyncStorage.getItem('userData');
             const currentUser = userDataStr ? JSON.parse(userDataStr) : null;
             console.log('Données utilisateur actuelles:', currentUser);
 
-            // Créer un Set des IDs utilisateurs uniques
             const uniqueUserIds = new Set(response.map(comment => comment.user_id));
             console.log('IDs utilisateurs uniques:', Array.from(uniqueUserIds));
 
-            // Récupérer les informations de tous les utilisateurs
             const userPromises = Array.from(uniqueUserIds).map(async (userId) => {
                 try {
                     const userResponse = await userService.getUserById(userId);
@@ -69,41 +99,32 @@ export const CommentsPage = () => {
             });
             console.log('Map des utilisateurs:', userMap);
 
-            // Organiser les commentaires en commentaires principaux et réponses
             const commentsWithUsers = response.map(comment => ({
                 ...comment,
                 user: userMap[comment.user_id] || currentUser,
-                parentComment_id: (comment as any).parentcomment_id // Utiliser une assertion de type
+                parentComment_id: (comment as any).parentcomment_id
             }));
 
-            console.log('Commentaires avec utilisateurs:', JSON.stringify(commentsWithUsers, null, 2));
-
-            // Identifier d'abord les commentaires principaux (ceux sans parent)
             const mainComments = commentsWithUsers.filter(comment => {
                 console.log('Vérification commentaire:', comment.id, 'parentComment_id:', comment.parentComment_id);
                 return comment.parentComment_id === null;
             });
 
-            // Les réponses sont tous les autres commentaires
             const replies = commentsWithUsers.filter(comment => comment.parentComment_id !== null);
 
-            console.log('Commentaires principaux:', JSON.stringify(mainComments, null, 2));
-            console.log('Réponses:', JSON.stringify(replies, null, 2));
-
-            // Ajouter les réponses à leurs commentaires parents
             const organizedComments = mainComments.map(comment => {
                 const commentReplies = replies.filter(reply => 
                     Number(reply.parentComment_id) === Number(comment.id)
                 );
-                console.log(`Réponses pour le commentaire ${comment.id}:`, JSON.stringify(commentReplies, null, 2));
                 return {
                     ...comment,
                     replies: commentReplies
                 };
             });
 
-            console.log('Commentaires organisés finaux:', JSON.stringify(organizedComments, null, 2));
-            setComments(organizedComments);
+            // Charger l'état des likes pour tous les commentaires
+            const commentsWithLikes = await loadLikedComments(organizedComments);
+            setComments(commentsWithLikes);
         } catch (error) {
             console.error('Erreur lors du chargement des commentaires:', error);
             setError('Impossible de charger les commentaires. Veuillez réessayer plus tard.');
@@ -180,6 +201,38 @@ export const CommentsPage = () => {
         }
     };
 
+    const handleLike = async (commentId: string, currentLike: number, isLiked: boolean) => {
+        try {
+            const updatedComment = await commentService.likeComment(commentId, currentLike, isLiked);
+            const newIsLiked = !isLiked;
+            
+            // Sauvegarder l'état du like
+            await saveLikedComments(commentId, newIsLiked);
+            
+            setComments(prevComments => 
+                prevComments.map(comment => {
+                    if (comment.id === commentId) {
+                        return { ...comment, like: updatedComment.like, isLiked: newIsLiked };
+                    }
+                    if (comment.replies) {
+                        return {
+                            ...comment,
+                            replies: comment.replies.map(r => 
+                                r.id === commentId
+                                    ? { ...r, like: updatedComment.like, isLiked: newIsLiked }
+                                    : r
+                            )
+                        };
+                    }
+                    return comment;
+                })
+            );
+        } catch (error) {
+            console.error('Erreur lors du like:', error);
+            Alert.alert('Erreur', 'Impossible de liker le commentaire');
+        }
+    };
+
     const renderComment = ({ item }: { item: CommentWithUser }) => (
         <View style={styles.commentContainer}>
             <View style={styles.commentHeader}>
@@ -187,16 +240,29 @@ export const CommentsPage = () => {
                     {item.user?.username || 'Utilisateur inconnu'}
                 </Text>
                 <Text style={styles.commentDate}>
-                    {new Date(item.created_at).toLocaleDateString()}
+                    {new Date(item.createdat).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                 </Text>
             </View>
             <Text style={styles.commentContent}>{item.content}</Text>
-            <TouchableOpacity 
-                style={styles.replyButton}
-                onPress={() => setReplyingTo(item)}
-            >
-                <Text style={styles.replyButtonText}>Répondre</Text>
-            </TouchableOpacity>
+            <View style={styles.commentActions}>
+                <TouchableOpacity 
+                    style={styles.replyButton}
+                    onPress={() => setReplyingTo(item)}
+                >
+                    <Text style={styles.replyButtonText}>Répondre</Text>
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    style={styles.likeButton}
+                    onPress={() => handleLike(item.id, item.like, item.isLiked || false)}
+                >
+                    <Ionicons 
+                        name={item.isLiked ? "heart" : "heart-outline"} 
+                        size={20} 
+                        color={item.isLiked ? "#007AFF" : "#666"} 
+                    />
+                    <Text style={[styles.likeCount, item.isLiked && styles.likedCount]}>{item.like}</Text>
+                </TouchableOpacity>
+            </View>
             
             {/* Afficher les réponses */}
             {item.replies && item.replies.length > 0 && (
@@ -208,10 +274,23 @@ export const CommentsPage = () => {
                                     {reply.user?.username || 'Utilisateur inconnu'}
                                 </Text>
                                 <Text style={styles.replyDate}>
-                                    {new Date(reply.created_at).toLocaleDateString()}
+                                    {new Date(reply.createdat).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                                 </Text>
                             </View>
                             <Text style={styles.replyContent}>{reply.content}</Text>
+                            <View style={styles.replyActions}>
+                                <TouchableOpacity 
+                                    style={styles.likeButton}
+                                    onPress={() => handleLike(reply.id, reply.like, reply.isLiked || false)}
+                                >
+                                    <Ionicons 
+                                        name={reply.isLiked ? "heart" : "heart-outline"} 
+                                        size={16} 
+                                        color={reply.isLiked ? "#007AFF" : "#666"} 
+                                    />
+                                    <Text style={[styles.likeCount, reply.isLiked && styles.likedCount]}>{reply.like}</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
                     ))}
                 </View>
@@ -472,5 +551,29 @@ const styles = StyleSheet.create({
     replyingToText: {
         fontSize: 14,
         color: '#666',
+    },
+    commentActions: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: 8,
+    },
+    likeButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 4,
+    },
+    likeCount: {
+        marginLeft: 4,
+        color: '#666',
+        fontSize: 14,
+    },
+    likedCount: {
+        color: '#007AFF',
+    },
+    replyActions: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        marginTop: 4,
     },
 }); 

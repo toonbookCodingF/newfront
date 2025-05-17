@@ -6,7 +6,10 @@ export interface User {
     username: string;
     email: string;
     name: string;
-    lastName: string;
+    lastname: string;
+    createdat: string;
+    role: string;
+    password?: string;
 }
 
 const handleResponse = async (response: Response) => {
@@ -25,8 +28,7 @@ export const userService = {
         }
 
         try {
-            // Utiliser l'endpoint de profil sans ID car il renvoie les informations de l'utilisateur connecté
-            const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.user.profile}`, {
+            const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.auth.getbyid(id.toString())}`, {
                 method: 'GET',
                 headers: {
                     ...API_CONFIG.headers,
@@ -44,7 +46,7 @@ export const userService = {
 
             const userData = await handleResponse(response);
             console.log('Service: Données utilisateur reçues:', userData);
-            return userData;
+            return userData.data;
         } catch (error) {
             console.error('Erreur lors de la récupération de l\'utilisateur:', error);
             throw error;
