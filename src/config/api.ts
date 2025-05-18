@@ -1,8 +1,23 @@
 import { update } from "lodash";
+import { Platform } from 'react-native';
+
+// Déterminer l'URL de base en fonction de la plateforme
+const getBaseUrl = () => {
+  if (Platform.OS === 'android') {
+    // Pour l'émulateur Android
+    return 'http://10.0.2.2:3000/api';
+  } else if (Platform.OS === 'ios') {
+    // Pour l'émulateur iOS
+    return 'http://localhost:3000/api';
+  } else {
+    // Pour le développement web ou autres plateformes
+    return 'http://localhost:3000/api';
+  }
+};
 
 export const API_CONFIG = {
-  baseURL: 'http://10.0.2.2:3000/api',
-  imageBaseURL: 'http://10.0.2.2:3000',
+  baseURL: getBaseUrl(),
+  imageBaseURL: getBaseUrl().replace('/api', ''),
   staticPath: '/public',
   timeout: 30000,
   headers: {
@@ -24,7 +39,9 @@ export const API_CONFIG = {
 // Log de la configuration pour le débogage
 console.log('API Configuration:', {
   baseURL: API_CONFIG.baseURL,
-  imageBaseURL: API_CONFIG.imageBaseURL
+  imageBaseURL: API_CONFIG.imageBaseURL,
+  staticPath: API_CONFIG.staticPath,
+  platform: Platform.OS
 });
 
 export const ENDPOINTS = {

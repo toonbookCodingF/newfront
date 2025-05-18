@@ -1,27 +1,49 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { API_CONFIG } from '../config/api';
 
 interface BookCoverProps {
   cover?: string;
 }
 
 export const BookCover: React.FC<BookCoverProps> = ({ cover }) => {
-  console.log('BookCover received cover:', cover);
+  const getImageUrl = (imagePath: string | undefined) => {
+    if (!imagePath) return undefined;
+    
+    // Si c'est déjà une URL complète
+    if (imagePath.startsWith('http')) return imagePath;
+    
+    // Si c'est un chemin relatif
+    if (imagePath.startsWith('/')) {
+      return `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${imagePath}`;
+    }
+    
+    // Si c'est juste le nom du fichier
+    return `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}/images/${imagePath}`;
+  };
 
   const handleImageError = (error: any) => {
-    console.error('Erreur de chargement de l\'image:', error.nativeEvent);
+    console.error('Erreur de chargement de l\'image dans BookCover:', error.nativeEvent);
+    console.error('URL de l\'image qui a échoué:', cover);
+    console.error('Détails de l\'erreur:', JSON.stringify(error.nativeEvent, null, 2));
   };
+
+  const handleImageLoad = () => {
+    console.log('Image chargée avec succès dans BookCover:', cover);
+  };
+
+  const imageUrl = getImageUrl(cover);
 
   return (
     <View style={styles.container}>
-      {cover && cover !== '' ? (
+      {imageUrl ? (
         <Image
-          source={{ uri: cover }}
+          source={{ uri: imageUrl }}
           style={styles.cover}
           resizeMode="cover"
           onError={handleImageError}
-          onLoad={() => console.log('Image chargée avec succès:', cover)}
+          onLoad={handleImageLoad}
         />
       ) : (
         <View style={styles.placeholderCover}>

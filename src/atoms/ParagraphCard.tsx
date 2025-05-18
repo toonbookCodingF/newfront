@@ -31,7 +31,7 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const isImage = type === 'image';
-  const imageUrl = isImage ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${content}` : null;
+  const imageUrl = isImage ? `${API_CONFIG.imageBaseURL}/public${content}` : null;
   const canEdit = source === 'myBooks';
 
   console.log('Image URL:', imageUrl);
@@ -45,6 +45,7 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({
     console.error('Erreur de chargement de l\'image:', error.nativeEvent.error);
     setIsLoading(false);
     setHasError(true);
+  };
 
   const handleCommentPress = () => {
     navigation.navigate('Comments', { bookContentId: id });

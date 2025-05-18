@@ -31,17 +31,63 @@ export const useCreateBook = () => {
 
   const fetchBookType = async (type: number) => {
     try {
-      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.booktypes.getAll}`);
+      console.log('Tentative de récupération des types de livres...');
+      console.log('URL:', `${API_CONFIG.baseURL}${ENDPOINTS.booktypes.getAll}`);
+      
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token non trouvé');
+      }
+
+      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.booktypes.getAll}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      console.log('Statut de la réponse:', response.status);
+      console.log('Headers de la réponse:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Réponse d\'erreur:', errorText);
+        
+        // Vérifier si c'est une erreur d'authentification
+        if (response.status === 401) {
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        
+        // Vérifier si c'est une erreur de serveur
+        if (response.status >= 500) {
+          throw new Error('Erreur serveur. Veuillez réessayer plus tard.');
+        }
+        
+        throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
+      }
+
       const json = await response.json();
+      console.log('Données reçues:', json);
+
+      if (!json.data || !Array.isArray(json.data)) {
+        throw new Error('Format de réponse invalide');
+      }
+
       const bookTypeName = type === 0 ? 'roman' : 'webtoon';
-      const found = json.data?.find((bt: any) =>
+      const found = json.data.find((bt: any) =>
         bt.nametype?.toLowerCase() === bookTypeName
       );
+      
       if (found) {
+        console.log('Type de livre trouvé:', found);
         setBookType(found);
+      } else {
+        console.warn('Type de livre non trouvé:', bookTypeName);
+        throw new Error(`Type de livre "${bookTypeName}" non trouvé`);
       }
     } catch (error) {
-      console.error('Erreur chargement book-types :', error);
+      console.error('Erreur détaillée chargement book-types :', error);
+      throw error;
     }
   };
 

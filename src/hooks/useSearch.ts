@@ -9,6 +9,26 @@ export const useSearch = () => {
   const [error, setError] = useState<string>('');
   const timeoutRef = useRef<NodeJS.Timeout>();
 
+  const getImageUrl = (imagePath: string | undefined) => {
+    if (!imagePath) return undefined;
+    
+    // Si c'est déjà une URL complète
+    if (imagePath.startsWith('http')) return imagePath;
+    
+    // Si c'est un chemin relatif qui commence par /images/
+    if (imagePath.startsWith('/images/')) {
+      return `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${imagePath}`;
+    }
+    
+    // Si c'est un chemin relatif qui ne commence pas par /images/
+    if (imagePath.startsWith('/')) {
+      return `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}/images${imagePath}`;
+    }
+    
+    // Si c'est juste le nom du fichier
+    return `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}/images/${imagePath}`;
+  };
+
   const searchBooks = useCallback(async (query: string) => {
     if (!query.trim()) {
       setFilteredBooks([]);
@@ -22,7 +42,7 @@ export const useSearch = () => {
       
       const formattedBooks = data.map((book: any) => ({
         ...book,
-        coverimage: book.cover && book.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${book.cover}` : undefined
+        coverimage: getImageUrl(book.cover)
       }));
 
       setFilteredBooks(formattedBooks);

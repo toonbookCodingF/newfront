@@ -10,6 +10,7 @@ export const useBooks = () => {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
+        console.log('Début du chargement des livres');
         const data = await bookService.getAll();
         console.log('Données brutes des livres:', data);
 
@@ -20,7 +21,7 @@ export const useBooks = () => {
             title: book.title,
             author: book.author || 'Auteur inconnu',
             description: book.description,
-            coverimage: book.cover && book.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${book.cover}` : undefined,
+            coverimage: book.cover ? `${API_CONFIG.imageBaseURL}${book.cover}` : undefined,
             createdAt: book.createdAt || new Date().toISOString(),
             updatedAt: book.updatedAt || new Date().toISOString(),
             category_id: book.category_id,
