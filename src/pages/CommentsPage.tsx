@@ -63,7 +63,8 @@ export const CommentsPage = () => {
 
     const loadComments = async () => {
         try {
-            console.log('Chargement des commentaires pour bookContentId:', bookContentId);
+            console.log('=== DÉBUT DU CHARGEMENT DES COMMENTAIRES ===');
+            console.log('bookContentId:', bookContentId);
             
             if (!bookContentId) {
                 console.error('bookContentId manquant');
@@ -72,12 +73,22 @@ export const CommentsPage = () => {
                 return;
             }
 
+            setLoading(true);
+            console.log('Appel du service getCommentsByBookContent...');
             const response = await commentService.getCommentsByBookContent(bookContentId);
-            console.log('Commentaires bruts reçus:', JSON.stringify(response, null, 2));
+            console.log('Réponse du service:', response);
+            console.log('Nombre de commentaires reçus:', response.length);
+
+            if (!response || response.length === 0) {
+                console.log('Aucun commentaire reçu');
+                setComments([]);
+                setLoading(false);
+                return;
+            }
 
             const userDataStr = await AsyncStorage.getItem('userData');
             const currentUser = userDataStr ? JSON.parse(userDataStr) : null;
-            console.log('Données utilisateur actuelles:', currentUser);
+            console.log('Utilisateur actuel:', currentUser);
 
             const uniqueUserIds = new Set(response.map(comment => comment.user_id));
             console.log('IDs utilisateurs uniques:', Array.from(uniqueUserIds));
@@ -104,13 +115,16 @@ export const CommentsPage = () => {
                 user: userMap[comment.user_id] || currentUser,
                 parentComment_id: (comment as any).parentcomment_id
             }));
+            console.log('Commentaires avec utilisateurs:', commentsWithUsers);
 
             const mainComments = commentsWithUsers.filter(comment => {
                 console.log('Vérification commentaire:', comment.id, 'parentComment_id:', comment.parentComment_id);
                 return comment.parentComment_id === null;
             });
+            console.log('Commentaires principaux:', mainComments);
 
             const replies = commentsWithUsers.filter(comment => comment.parentComment_id !== null);
+            console.log('Réponses:', replies);
 
             const organizedComments = mainComments.map(comment => {
                 const commentReplies = replies.filter(reply => 
@@ -121,10 +135,14 @@ export const CommentsPage = () => {
                     replies: commentReplies
                 };
             });
+            console.log('Commentaires organisés:', organizedComments);
 
             // Charger l'état des likes pour tous les commentaires
             const commentsWithLikes = await loadLikedComments(organizedComments);
+            console.log('Commentaires avec likes:', commentsWithLikes);
+            
             setComments(commentsWithLikes);
+            console.log('=== FIN DU CHARGEMENT DES COMMENTAIRES ===');
         } catch (error) {
             console.error('Erreur lors du chargement des commentaires:', error);
             setError('Impossible de charger les commentaires. Veuillez réessayer plus tard.');
@@ -173,23 +191,10 @@ export const CommentsPage = () => {
             const response = await commentService.createComment(commentData);
             console.log('Commentaire créé avec succès:', response);
             
-            // Ajouter le nouveau commentaire à la liste
-            const newCommentWithUser = { ...response, user };
+            // Recharger tous les commentaires après l'ajout
+            await loadComments();
             
-            if (replyingTo) {
-                // Si c'est une réponse, l'ajouter aux réponses du commentaire parent
-                setComments(prevComments => 
-                    prevComments.map(comment => 
-                        comment.id === replyingTo.id
-                            ? { ...comment, replies: [...(comment.replies || []), newCommentWithUser] }
-                            : comment
-                    )
-                );
-            } else {
-                // Si c'est un nouveau commentaire, l'ajouter à la liste principale
-                setComments(prev => [...prev, newCommentWithUser]);
-            }
-            
+            // Réinitialiser le formulaire
             setNewComment('');
             setReplyingTo(null);
         } catch (error) {

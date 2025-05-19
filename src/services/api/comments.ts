@@ -34,20 +34,31 @@ const handleResponse = async (response: Response) => {
 
 export const commentService = {
     getCommentsByBookContent: async (bookContentId: string): Promise<Comment[]> => {
-        console.log('Service: Tentative de récupération des commentaires pour bookContentId:', bookContentId);
+        console.log('=== DÉBUT DU SERVICE GETCOMMENTSBYBOOKCONTENT ===');
+        console.log('bookContentId reçu:', bookContentId);
         
         const token = await AsyncStorage.getItem('token');
-        console.log('Service: Token récupéré:', token ? 'Présent' : 'Absent');
+        console.log('Token récupéré:', token ? 'Présent' : 'Absent');
         
         if (!token) {
-            console.error('Service: Token non trouvé dans AsyncStorage');
+            console.error('Token non trouvé dans AsyncStorage');
             throw new Error('Utilisateur non connecté');
         }
 
         try {
-            // Essayer d'abord sans pagination
-            const url = `${API_CONFIG.baseURL}/comments?bookContent_id=${bookContentId}`;
-            console.log('Service: URL de la requête:', url);
+            // Convertir bookContentId en nombre
+            const bookContentIdNum = Number(bookContentId);
+            if (isNaN(bookContentIdNum)) {
+                console.error('bookContentId invalide:', bookContentId);
+                throw new Error('ID de contenu invalide');
+            }
+
+            const url = `${API_CONFIG.baseURL}${ENDPOINTS.comments.getAllCommentByBookContent(bookContentIdNum.toString())}`;
+            console.log('URL de la requête:', url);
+            console.log('Headers:', {
+                ...API_CONFIG.headers,
+                Authorization: `Bearer ${token}`,
+            });
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -57,35 +68,45 @@ export const commentService = {
                 },
             });
             
-            console.log('Service: Statut de la réponse:', response.status);
-            console.log('Service: Headers de la réponse:', response.headers);
+            console.log('Statut de la réponse:', response.status);
+            console.log('Headers de la réponse:', response.headers);
             
             // Vérifier le type de contenu de la réponse
             const contentType = response.headers.get('content-type');
+            console.log('Type de contenu de la réponse:', contentType);
+            
             if (!contentType || !contentType.includes('application/json')) {
                 const text = await response.text();
-                console.error('Service: Réponse non-JSON reçue:', text);
+                console.error('Réponse non-JSON reçue:', text);
                 throw new Error('Réponse invalide du serveur');
             }
 
             if (!response.ok) {
                 const errorData = await response.json();
-                console.error('Service: Erreur détaillée du serveur:', errorData);
+                console.error('Erreur détaillée du serveur:', errorData);
                 throw new Error(errorData.message || 'Erreur lors de la récupération des commentaires');
             }
             
             const result = await response.json();
-            console.log('Service: Commentaires reçus:', result);
+            console.log('Résultat brut:', result);
 
             // Vérifier si la réponse contient un tableau de commentaires
             if (!Array.isArray(result)) {
-                console.error('Service: Réponse invalide - tableau de commentaires attendu:', result);
+                console.error('Réponse invalide - tableau de commentaires attendu:', result);
                 throw new Error('Format de réponse invalide');
             }
 
-            return result;
+            // Filtrer les commentaires pour ne garder que ceux du bookContentId spécifique
+            const filteredComments = result.filter(comment => 
+                Number(comment.bookcontent_id) === bookContentIdNum
+            );
+
+            console.log('Nombre de commentaires reçus:', result.length);
+            console.log('Nombre de commentaires filtrés:', filteredComments.length);
+            console.log('=== FIN DU SERVICE GETCOMMENTSBYBOOKCONTENT ===');
+            return filteredComments;
         } catch (error) {
-            console.error('Service: Erreur lors de la récupération des commentaires:', error);
+            console.error('Erreur lors de la récupération des commentaires:', error);
             throw error;
         }
     },

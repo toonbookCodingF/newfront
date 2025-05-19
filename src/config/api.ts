@@ -1,23 +1,9 @@
 import { update } from "lodash";
 import { Platform } from 'react-native';
 
-// Déterminer l'URL de base en fonction de la plateforme
-const getBaseUrl = () => {
-  if (Platform.OS === 'android') {
-    // Pour l'émulateur Android
-    return 'http://10.0.2.2:3000/api';
-  } else if (Platform.OS === 'ios') {
-    // Pour l'émulateur iOS
-    return 'http://localhost:3000/api';
-  } else {
-    // Pour le développement web ou autres plateformes
-    return 'http://localhost:3000/api';
-  }
-};
-
 export const API_CONFIG = {
-  baseURL: getBaseUrl(),
-  imageBaseURL: getBaseUrl().replace('/api', ''),
+  baseURL: 'http://10.0.2.2:3000/api',
+  imageBaseURL: 'http://10.0.2.2:3000',
   staticPath: '/public',
   timeout: 30000,
   headers: {
@@ -76,7 +62,7 @@ export const ENDPOINTS = {
     delete: (id: string) => `/bookcontents/${id}`,
   },
   booktypes: {
-    getAll: '/booktypes',
+    getAll: '/book-types',
   },
   categories: {
     getAll: '/categories',

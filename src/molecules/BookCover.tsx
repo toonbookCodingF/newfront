@@ -8,20 +8,6 @@ interface BookCoverProps {
 }
 
 export const BookCover: React.FC<BookCoverProps> = ({ cover }) => {
-  const getImageUrl = (imagePath: string | undefined) => {
-    if (!imagePath) return undefined;
-    
-    // Si c'est déjà une URL complète
-    if (imagePath.startsWith('http')) return imagePath;
-    
-    // Si c'est un chemin relatif
-    if (imagePath.startsWith('/')) {
-      return `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${imagePath}`;
-    }
-    
-    // Si c'est juste le nom du fichier
-    return `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}/images/${imagePath}`;
-  };
 
   const handleImageError = (error: any) => {
     console.error('Erreur de chargement de l\'image dans BookCover:', error.nativeEvent);
@@ -29,21 +15,16 @@ export const BookCover: React.FC<BookCoverProps> = ({ cover }) => {
     console.error('Détails de l\'erreur:', JSON.stringify(error.nativeEvent, null, 2));
   };
 
-  const handleImageLoad = () => {
-    console.log('Image chargée avec succès dans BookCover:', cover);
-  };
-
-  const imageUrl = getImageUrl(cover);
-
   return (
     <View style={styles.container}>
-      {imageUrl ? (
+      {cover && cover !== '' ? (
         <Image
-          source={{ uri: imageUrl }}
+          source={{ uri: cover }}
           style={styles.cover}
           resizeMode="cover"
           onError={handleImageError}
-          onLoad={handleImageLoad}
+          onLoad={() => console.log('Image chargée avec succès', cover)}
+      
         />
       ) : (
         <View style={styles.placeholderCover}>
