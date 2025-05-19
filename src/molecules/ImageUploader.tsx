@@ -1,14 +1,16 @@
 import React, { useEffect } from 'react';
-import { View, Text, Pressable, Image, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, Pressable, Image, StyleSheet, ActivityIndicator, Alert, Platform } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { API_CONFIG } from '../config/api';
 
 interface ImageUploaderProps {
-  cover: string;
-  onCoverChange: (url: string) => void;
+  cover?: string;
+  onCoverChange: (cover: any) => void;
   uploading: boolean;
   onUploadingChange: (uploading: boolean) => void;
 }
+
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
 
 export const ImageUploader: React.FC<ImageUploaderProps> = ({
   cover,
@@ -28,6 +30,15 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     })();
   }, []);
 
+  const validateImage = (image: ImagePicker.ImagePickerAsset) => {
+    if (image.fileSize && image.fileSize > MAX_FILE_SIZE) {
+      throw new Error('L\'image ne doit pas dépasser 5MB');
+    }
+    if (!image.mimeType || !ALLOWED_TYPES.includes(image.mimeType)) {
+      throw new Error('Format d\'image non supporté. Utilisez JPEG, PNG, GIF ou WEBP');
+    }
+  };
+
   const pickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -43,37 +54,27 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         quality: 0.7,
+        exif: true,
+        presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
       });
 
       if (!result.canceled) {
         const image = result.assets[0];
-
         try {
+          validateImage(image);
           onUploadingChange(true);
 
-          const formData = new FormData();
-          formData.append('file', {
-            uri: image.uri,
-            name: 'cover.jpg',
-            type: 'image/jpeg',
-          } as any);
+          // Créer l'objet image pour FormData
+          const imageObject = {
+            uri: Platform.OS === 'android' ? image.uri : image.uri.replace('file://', ''),
+            type: image.mimeType || 'image/jpeg',
+            name: `cover.${image.mimeType?.split('/')[1] || 'jpg'}`
+          };
 
-          const response = await fetch(`${API_CONFIG.baseURL}/upload`, {
-            method: 'POST',
-            body: formData,
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-
-          const data = await response.json();
-
-          if (data.url) {
-            onCoverChange(data.url);
-          }
+          onCoverChange(imageObject);
         } catch (error) {
-          console.error('Erreur upload :', error);
-          Alert.alert('Erreur', 'Une erreur est survenue lors du téléchargement de l\'image.');
+          console.error('Erreur sélection image :', error);
+          Alert.alert('Erreur', error instanceof Error ? error.message : 'Une erreur est survenue lors de la sélection de l\'image.');
         } finally {
           onUploadingChange(false);
         }
@@ -84,23 +85,39 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
     }
   };
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.label}>Cover</Text>
-      <Pressable onPress={pickImage} disabled={uploading} style={styles.button}>
-        {uploading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={styles.buttonText}>Upload</Text>
-        )}
-      </Pressable>
+  const renderButton = () => (
+    <Pressable
+      onPress={pickImage}
+      disabled={uploading}
+      style={[styles.button, uploading && styles.buttonDisabled]}
+    >
+      {uploading ? (
+        <ActivityIndicator color="#fff" />
+      ) : (
+        <Text style={styles.buttonText}>
+          {cover ? 'Changer la couverture' : 'Ajouter une couverture'}
+        </Text>
+      )}
+    </Pressable>
+  );
 
-      {cover ? (
+  const renderImage = () => (
+    cover ? (
+      <View style={styles.imageContainer}>
         <Image
           source={{ uri: cover }}
           style={styles.image}
+          resizeMode="cover"
         />
-      ) : null}
+      </View>
+    ) : null
+  );
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.label}>Couverture</Text>
+      {renderButton()}
+      {renderImage()}
     </View>
   );
 };
@@ -120,14 +137,19 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+  buttonDisabled: {
+    backgroundColor: '#cccccc',
+  },
   buttonText: {
     color: '#fff',
     fontSize: 16,
   },
+  imageContainer: {
+    marginTop: 10,
+  },
   image: {
     width: 200,
     height: 200,
-    marginTop: 10,
     borderRadius: 8,
   },
 }); 

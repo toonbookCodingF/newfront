@@ -1,10 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Paragraph {
   id: number;
   content: string;
+  type: string;
+  chapter_id: number;
+  createdat: string;
 }
 
 export const useParagraphs = (chapterId: string) => {
@@ -12,39 +15,48 @@ export const useParagraphs = (chapterId: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchParagraphs = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchParagraphs = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        const token = await AsyncStorage.getItem("userToken");
-        const headers = {
-          "Content-Type": "application/json",
-          Authorization: token ? `Bearer ${token}` : "",
-        };
-
-        const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.getByChapterId(chapterId)}`, {
-          headers,
-        });
-
-        if (!response.ok) {
-          throw new Error(`Erreur ${response.status}: Impossible de récupérer les paragraphes`);
-        }
-
-        const data = await response.json();
-        setParagraphs(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Une erreur est survenue');
-      } finally {
-        setLoading(false);
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('Non authentifié. Veuillez vous reconnecter.');
       }
-    };
 
-    if (chapterId) {
-      fetchParagraphs();
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+
+      console.log('[FETCH] Fetching paragraphs for chapter:', chapterId);
+      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.getByChapterId(chapterId)}`, {
+        headers,
+      });
+
+      console.log('[FETCH] Paragraphs response status:', response.status);
+      const data = await response.json();
+      console.log('[FETCH] Paragraphs response data:', data);
+
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: Impossible de récupérer les paragraphes`);
+      }
+
+      setParagraphs(Array.isArray(data) ? data : data.data || []);
+    } catch (err) {
+      console.error('Erreur dans useParagraphs:', err);
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+    } finally {
+      setLoading(false);
     }
   }, [chapterId]);
 
-  return { paragraphs, loading, error };
+  useEffect(() => {
+    if (chapterId) {
+      fetchParagraphs();
+    }
+  }, [chapterId, fetchParagraphs]);
+
+  return { paragraphs, loading, error, refresh: fetchParagraphs };
 }; 

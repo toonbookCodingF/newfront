@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Alert } from 'react-native';
 import { bookService } from '../services/api/books';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Category {
   id: number;
@@ -30,62 +31,104 @@ export const useCreateBook = () => {
 
   const fetchBookType = async (type: number) => {
     try {
-      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.booktypes.getAll}`);
+      console.log('Tentative de récupération des types de livres...');
+      console.log('URL:', `${API_CONFIG.baseURL}${ENDPOINTS.booktypes.getAll}`);
+      
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token non trouvé');
+      }
+
+      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.booktypes.getAll}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        }
+      });
+
+      console.log('Statut de la réponse:', response.status);
+      console.log('Headers de la réponse:', Object.fromEntries(response.headers.entries()));
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Réponse d\'erreur:', errorText);
+        
+        // Vérifier si c'est une erreur d'authentification
+        if (response.status === 401) {
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        
+        // Vérifier si c'est une erreur de serveur
+        if (response.status >= 500) {
+          throw new Error('Erreur serveur. Veuillez réessayer plus tard.');
+        }
+        
+        throw new Error(`Erreur HTTP: ${response.status} - ${errorText}`);
+      }
+
       const json = await response.json();
+      console.log('Données reçues:', json);
+
+      if (!json.data || !Array.isArray(json.data)) {
+        throw new Error('Format de réponse invalide');
+      }
+
       const bookTypeName = type === 0 ? 'roman' : 'webtoon';
-      const found = json.data?.find((bt: any) =>
+      const found = json.data.find((bt: any) =>
         bt.nametype?.toLowerCase() === bookTypeName
       );
+      
       if (found) {
+        console.log('Type de livre trouvé:', found);
         setBookType(found);
+      } else {
+        console.warn('Type de livre non trouvé:', bookTypeName);
+        throw new Error(`Type de livre "${bookTypeName}" non trouvé`);
       }
     } catch (error) {
-      console.error('Erreur chargement book-types :', error);
+      console.error('Erreur détaillée chargement book-types :', error);
+      throw error;
     }
   };
 
   const handleSubmit = async (
-    title: string,
-    description: string,
-    cover: string,
-    category: string,
-    type: number | null,
+    formData: FormData,
     onSuccess: (bookId: number) => void
   ) => {
-    if (!title || !category || type === null) {
-      Alert.alert('Champs requis', 'Veuillez remplir tous les champs.');
-      return;
-    }
-
     try {
-      const coverToSend = cover || 'https://via.placeholder.com/300x400.png?text=Couverture';
-      
-      const bookData = {
-        title,
-        description,
-        coverimage: coverToSend,
-        category_id: parseInt(category),
-        booktype_id: bookType?.id || null,
-        user_id: 1,
-        status: 'draft',
-      };
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('Token non trouvé');
+      }
 
-      const newBook = await bookService.create(bookData);
-      console.log('Livre créé:', newBook);
-      
-      if (!newBook.id) {
+      const response = await fetch(`${API_CONFIG.baseURL}/books`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      console.log('Réponse complète du serveur:', {
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
+      });
+
+      const data = await response.json();
+      console.log('Données de la réponse:', data);
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Erreur lors de la création du livre');
+      }
+
+      if (!data.data || !data.data.id) {
         throw new Error('ID du livre non trouvé dans la réponse');
       }
 
-      const bookId = parseInt(newBook.id);
-      if (isNaN(bookId)) {
-        throw new Error('ID du livre invalide');
-      }
-
-      onSuccess(bookId);
-    } catch (error: any) {
-      console.error('Erreur détaillée:', error);
-      Alert.alert('Erreur', error.message || 'Une erreur est survenue lors de la création du livre');
+      onSuccess(data.data.id);
+    } catch (error) {
+      console.error('Erreur dans handleSubmit:', error);
+      throw error;
     }
   };
 

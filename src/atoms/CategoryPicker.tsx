@@ -46,7 +46,7 @@ export const CategoryPicker: React.FC<CategoryPickerProps> = ({
     <View style={styles.container}>
       <Text style={styles.label}>{label}</Text>
       {loading ? (
-        <ActivityIndicator size="small" color="#A020F0" />
+        <ActivityIndicator size={24} color="#A020F0" />
       ) : (
         <>
           <TouchableOpacity

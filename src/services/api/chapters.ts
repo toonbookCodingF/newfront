@@ -1,4 +1,5 @@
 import { API_CONFIG, ENDPOINTS } from '../../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { handleApiError, handleNetworkError } from '../../Errorhandler';
 
 type CreateChapterParams = {
@@ -16,16 +17,38 @@ type CreateContentParams = {
   type?: string;
 };
 
+export type UpdateChapterParams = {
+  title?: string;
+  status?: string;
+  order?: number;
+};
+
+export type UpdateContentParams = {
+  content?: string;
+  order?: number;
+  image?: string | null;
+  type?: string;
+};
+
+const getAuthHeaders = async () => {
+  const token = await AsyncStorage.getItem('token');
+  return {
+    ...API_CONFIG.headers,
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+  };
+};
+
 export const chapterService = {
   async createChapter(params: CreateChapterParams) {
     try {
+      const headers = await getAuthHeaders();
       console.log('Tentative de création du chapitre avec les paramètres:', params);
       console.log('URL:', `${API_CONFIG.baseURL}${ENDPOINTS.chapters.create}`);
-      console.log('Headers:', API_CONFIG.headers);
+      console.log('Headers avec token:', headers);
 
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.create}`, {
         method: 'POST',
-        headers: API_CONFIG.headers,
+        headers,
         body: JSON.stringify({
           ...params,
           status: params.status || "published",
@@ -38,6 +61,9 @@ export const chapterService = {
       console.log('Contenu de la réponse:', responseText);
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Token manquant ou invalide');
+        }
         throw new Error(`Erreur ${response.status}: ${responseText}`);
       }
 
@@ -54,13 +80,14 @@ export const chapterService = {
 
   async createBookContent(params: CreateContentParams) {
     try {
+      const headers = await getAuthHeaders();
       console.log('Tentative de création du contenu avec les paramètres:', params);
       console.log('URL:', `${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`);
-      console.log('Headers:', API_CONFIG.headers);
+      console.log('Headers avec token:', headers);
 
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`, {
         method: 'POST',
-        headers: API_CONFIG.headers,
+        headers,
         body: JSON.stringify({
           content: params.content,
           chapter_id: params.chapter_id,
@@ -75,6 +102,9 @@ export const chapterService = {
       console.log('Contenu de la réponse:', responseText);
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Token manquant ou invalide');
+        }
         throw new Error(`Erreur ${response.status}: ${responseText}`);
       }
 
@@ -84,4 +114,46 @@ export const chapterService = {
       throw new Error(error.message || "Une erreur est survenue lors de la création du contenu");
     }
   },
+
+  async updateChapter(chapterId: number, params: UpdateChapterParams) {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.update(chapterId.toString())}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erreur lors de la mise à jour du chapitre');
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('Erreur lors de la mise à jour du chapitre:', error);
+      throw new Error(error.message || "Une erreur est survenue lors de la mise à jour du chapitre");
+    }
+  },
+
+  async updateContent(contentId: number, params: UpdateContentParams) {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.update(contentId.toString())}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(params),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Erreur lors de la mise à jour du contenu');
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('Erreur lors de la mise à jour du contenu:', error);
+      throw new Error(error.message || "Une erreur est survenue lors de la mise à jour du contenu");
+    }
+  }
 }; 

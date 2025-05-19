@@ -16,9 +16,26 @@ export const SearchBoard: React.FC = () => {
 
   const goToOeuvrePage = (book: Book) => {
     navigation.navigate('OeuvrePage', {
-      id: book.id
+      id: book.id,
+      fromMyBooks: false
     });
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size={36} color="#fff" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.errorText}>{error}</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

@@ -1,4 +1,5 @@
 import { API_CONFIG, ENDPOINTS } from '../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface LoginCredentials {
   email: string;
@@ -24,12 +25,35 @@ const handleResponse = async (response: Response) => {
 export const authService = {
   login: async (credentials: LoginCredentials) => {
     try {
+      console.log('Tentative de connexion avec:', credentials);
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.auth.login}`, {
         method: 'POST',
         headers: API_CONFIG.headers,
         body: JSON.stringify(credentials),
       });
-      return handleResponse(response);
+      
+      console.log('Statut de la réponse:', response.status);
+      const data = await handleResponse(response);
+      console.log('Réponse de connexion complète:', JSON.stringify(data, null, 2));
+      
+      if (data.token) {
+        console.log('Token reçu, stockage dans AsyncStorage');
+        await AsyncStorage.setItem('token', data.token);
+        
+        if (data.user) {
+          console.log('Données utilisateur reçues:', JSON.stringify(data.user, null, 2));
+          await AsyncStorage.setItem('userData', JSON.stringify(data.user));
+          
+          // Vérification du stockage
+          const storedUserData = await AsyncStorage.getItem('userData');
+          console.log('Données utilisateur stockées:', storedUserData);
+        } else {
+          console.warn('Aucune donnée utilisateur reçue dans la réponse');
+        }
+      } else {
+        console.warn('Aucun token reçu dans la réponse');
+      }
+      return data;
     } catch (error) {
       console.error('Login error:', error);
       throw new Error('Erreur de connexion au serveur');
@@ -59,7 +83,8 @@ export const authService = {
         headers: API_CONFIG.headers,
       });
       await handleResponse(response);
-      localStorage.removeItem('token');
+      await AsyncStorage.removeItem('token');
+      await AsyncStorage.removeItem('userData');
     } catch (error) {
       console.error('Logout error:', error);
       throw new Error('Erreur lors de la déconnexion');

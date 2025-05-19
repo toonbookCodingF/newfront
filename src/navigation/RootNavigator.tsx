@@ -9,15 +9,18 @@ import MenuCreation from '../pages/menuCreation';
 import OeuvrePage from '../pages/OeuvrePage';
 import ParagraphsPage from '../pages/ParagraphsPage';
 import CreateChapterPage from '../pages/CreateChapterPage';
+import { CommentsPage } from '../pages/CommentsPage';
+import UploadeOeuvreGraph from '../pages/UploadeOeuvreGraph';
+import MyBooks from '../pages/MyBooks';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator: React.FC = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator 
+      <Stack.Navigator
         initialRouteName="Auth"
-        screenOptions={{ 
+        screenOptions={{
           headerShown: false,
           animation: 'none'
         }}
@@ -28,9 +31,16 @@ export const RootNavigator: React.FC = () => {
         <Stack.Screen name="FormulaireCreation" component={FormulaireCreation} />
         <Stack.Screen name="OeuvrePage" component={OeuvrePage} />
         <Stack.Screen name="Paragraphs" component={ParagraphsPage} />
-        <Stack.Screen 
-          name="CreateChapterPage" 
+        <Stack.Screen name="Comments" component={CommentsPage} />
+        <Stack.Screen name="MyBooks" component={MyBooks} />
+        <Stack.Screen
+          name="CreateChapterPage"
           component={CreateChapterPage}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="UploadeOeuvreGraph"
+          component={UploadeOeuvreGraph}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

@@ -1,17 +1,41 @@
+import { update } from "lodash";
+import { Platform } from 'react-native';
+
 export const API_CONFIG = {
   baseURL: 'http://10.0.2.2:3000/api',
-  timeout: 10000,
+  imageBaseURL: 'http://10.0.2.2:3000',
+  staticPath: '/public',
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   },
+  uploadConfig: {
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'multipart/form-data',
+    },
+    transformRequest: (data: any) => {
+      return data;
+    },
+    timeout: 60000,
+  }
 };
+
+// Log de la configuration pour le débogage
+console.log('API Configuration:', {
+  baseURL: API_CONFIG.baseURL,
+  imageBaseURL: API_CONFIG.imageBaseURL,
+  staticPath: API_CONFIG.staticPath,
+  platform: Platform.OS
+});
 
 export const ENDPOINTS = {
   auth: {
     login: '/users/login',
     register: '/users/postUser',
-    logout: '/users/logout'
+    logout: '/users/logout',
+    getbyid: (id: string) => `/users/getById/${id}`,
   },
   user: {
     profile: '/users/profile',
@@ -38,9 +62,16 @@ export const ENDPOINTS = {
     delete: (id: string) => `/bookcontents/${id}`,
   },
   booktypes: {
-    getAll: '/booktypes',
+    getAll: '/book-types',
   },
   categories: {
     getAll: '/categories',
+  },
+  comments: {
+    getAll: '/comments',
+    create: '/comments',
+    update: (id: string) => `/comments/${id}`,
+    getOne: (id: string) => `/comments/${id}`,
+    getAllCommentByBookContent: (bookContentId: string) => `/comments?bookContent_id=${bookContentId}`,
   },
 }; 

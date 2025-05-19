@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ViewStyle, TextStyle, TouchableWithoutFeedback, Keyboard } from 'react-native';
 
 interface FormInputProps {
   label: string;
@@ -8,6 +8,11 @@ interface FormInputProps {
   placeholder?: string;
   multiline?: boolean;
   numberOfLines?: number;
+  error?: string;
+  containerStyle?: ViewStyle;
+  labelStyle?: TextStyle;
+  inputStyle?: TextStyle;
+  placeholderTextColor?: string;
 }
 
 export const FormInput: React.FC<FormInputProps> = ({
@@ -17,20 +22,37 @@ export const FormInput: React.FC<FormInputProps> = ({
   placeholder,
   multiline = false,
   numberOfLines = 1,
+  error,
+  containerStyle,
+  labelStyle,
+  inputStyle,
+  placeholderTextColor = '#aaa',
 }) => {
   return (
-    <View style={styles.container}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        style={[styles.input, multiline && styles.multilineInput]}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#aaa"
-        multiline={multiline}
-        numberOfLines={numberOfLines}
-      />
-    </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={[styles.container, containerStyle]}>
+        <Text style={[styles.label, labelStyle]}>{label}</Text>
+        <TextInput
+          style={[
+            styles.input,
+            multiline && styles.multilineInput,
+            error && styles.inputError,
+            inputStyle
+          ]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+          placeholderTextColor={placeholderTextColor}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          autoCorrect={false}
+          spellCheck={false}
+          keyboardType="default"
+          returnKeyType="done"
+        />
+        {error && <Text style={styles.errorText}>{error}</Text>}
+      </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -50,9 +72,18 @@ const styles = StyleSheet.create({
     padding: 10,
     fontSize: 16,
     backgroundColor: '#fff',
+    minHeight: 40,
   },
   multilineInput: {
     height: 100,
     textAlignVertical: 'top',
+  },
+  inputError: {
+    borderColor: '#d32f2f',
+  },
+  errorText: {
+    color: '#d32f2f',
+    fontSize: 12,
+    marginTop: 4,
   },
 }); 

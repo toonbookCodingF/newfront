@@ -8,20 +8,20 @@ export type RootStackParamList = {
   CreateChapterPage: { bookId: string };
   OeuvrePage: {
     id: string;
+    fromMyBooks?: boolean;
   };
   LecturePage: undefined;
   FormulaireCreation: undefined;
+  MyBooks: undefined;
   Paragraphs: {
     chapterId: string;
     bookId: string;
     chapterTitle: string;
     bookTitle: string;
+    fromMyBooks?: boolean;
   };
   Comments: {
-    chapterId: string;
-    bookId: string;
-    chapterTitle: string;
-    bookTitle: string;
+    bookContentId: string;
   };
 };
 
@@ -37,4 +37,28 @@ export type MainTabParamList = {
   Search: undefined;
   Profile: undefined;
   Settings: undefined;
+};
+
+export type LibraryStackParamList = {
+  LibraryMain: undefined;
+  MenuCreation: undefined;
+  FormulaireCreation: undefined;
+  OeuvrePage: {
+    id: string;
+    fromMyBooks?: boolean;
+  };
+  Paragraphs: {
+    chapterId: string;
+    bookId: string;
+    chapterTitle: string;
+    bookTitle: string;
+    fromMyBooks?: boolean;
+  };
+  MyBooks: undefined;
+  CreateChapterPage: {
+    bookId: string;
+  };
+  UploadeOeuvreGraph: {
+    bookId: string;
+  };
 }; 
