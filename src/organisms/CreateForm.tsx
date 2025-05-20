@@ -45,7 +45,7 @@ const decodeToken = (token: string) => {
   }
 };
 
-export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
+export const CreateForm: React.FC<CreateFormProps> = ({ onBack }): JSX.Element => {
   const navigation = useNavigation<CreateFormNavigationProp>();
   const rootNavigation = useRootNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [type, setType] = useState<number | null>(null);
@@ -82,34 +82,27 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
   };
 
   const handleFormSubmit = async () => {
-    console.log('=== DÉBUT handleFormSubmit ===');
     try {
       setError(null);
-      console.log('Validation du formulaire...');
 
       if (!validateForm()) {
-        console.log('Validation échouée');
         return;
       }
-      console.log('Validation réussie');
 
       // Récupérer et décoder le token
       const token = await AsyncStorage.getItem('token');
-      console.log('Token récupéré:', token ? 'Token présent' : 'Token manquant');
       
       if (!token) {
         throw new Error('Non authentifié. Veuillez vous reconnecter.');
       }
 
       const decodedToken = decodeToken(token);
-      console.log('Token décodé:', decodedToken);
       
       if (!decodedToken || !decodedToken.id) {
         throw new Error('Token invalide');
       }
 
       const userId = decodedToken.id;
-      console.log('ID utilisateur:', userId);
 
       const formData = new FormData();
       formData.append('title', title);
@@ -119,35 +112,19 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
       formData.append('user_id', userId.toString());
       formData.append('status', 'draft');
 
-      console.log('=== DONNÉES DU FORMULAIRE ===');
-      console.log('title:', title);
-      console.log('description:', description || '');
-      console.log('category_id:', category);
-      console.log('booktype_id:', bookType?.id ? bookType.id.toString() : '1');
-      console.log('user_id:', userId.toString());
-      console.log('status:', 'draft');
-      console.log('hasCover:', !!cover);
+   
 
       if (cover) {
-        console.log('Ajout de la cover');
         formData.append('cover', cover);
       }
 
-      console.log('Envoi au serveur...');
 
       await handleSubmit(
         formData,
         async (bookId: number) => {
-          console.log('[CREATE] Livre créé avec succès:', {
-            bookId,
-            title,
-            hasCover: !!cover,
-            userId
-          });
           if (type === 1) {
             rootNavigation.navigate('UploadeOeuvreGraph', { bookId: bookId.toString() });
           } else {
-            // Rediriger vers le formulaire de création de chapitre
             rootNavigation.navigate('CreateChapterPage', {
               bookId: bookId.toString()
             });
@@ -238,7 +215,6 @@ export const CreateForm: React.FC<CreateFormProps> = ({ onBack }) => {
       <TouchableOpacity
         style={[styles.submitButton, uploading && styles.submitButtonDisabled]}
         onPress={() => {
-          console.log('=== BOUTON CRÉER PRESSÉ ===');
           handleFormSubmit();
         }}
         disabled={uploading}

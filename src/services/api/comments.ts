@@ -34,11 +34,8 @@ const handleResponse = async (response: Response) => {
 
 export const commentService = {
     getCommentsByBookContent: async (bookContentId: string): Promise<Comment[]> => {
-        console.log('=== DÉBUT DU SERVICE GETCOMMENTSBYBOOKCONTENT ===');
-        console.log('bookContentId reçu:', bookContentId);
-        
+       
         const token = await AsyncStorage.getItem('token');
-        console.log('Token récupéré:', token ? 'Présent' : 'Absent');
         
         if (!token) {
             console.error('Token non trouvé dans AsyncStorage');
@@ -54,11 +51,7 @@ export const commentService = {
             }
 
             const url = `${API_CONFIG.baseURL}${ENDPOINTS.comments.getAllCommentByBookContent(bookContentIdNum.toString())}`;
-            console.log('URL de la requête:', url);
-            console.log('Headers:', {
-                ...API_CONFIG.headers,
-                Authorization: `Bearer ${token}`,
-            });
+            
 
             const response = await fetch(url, {
                 method: 'GET',
@@ -68,12 +61,9 @@ export const commentService = {
                 },
             });
             
-            console.log('Statut de la réponse:', response.status);
-            console.log('Headers de la réponse:', response.headers);
             
             // Vérifier le type de contenu de la réponse
             const contentType = response.headers.get('content-type');
-            console.log('Type de contenu de la réponse:', contentType);
             
             if (!contentType || !contentType.includes('application/json')) {
                 const text = await response.text();
@@ -88,7 +78,6 @@ export const commentService = {
             }
             
             const result = await response.json();
-            console.log('Résultat brut:', result);
 
             // Vérifier si la réponse contient un tableau de commentaires
             if (!Array.isArray(result)) {
@@ -101,9 +90,7 @@ export const commentService = {
                 Number(comment.bookcontent_id) === bookContentIdNum
             );
 
-            console.log('Nombre de commentaires reçus:', result.length);
-            console.log('Nombre de commentaires filtrés:', filteredComments.length);
-            console.log('=== FIN DU SERVICE GETCOMMENTSBYBOOKCONTENT ===');
+    
             return filteredComments;
         } catch (error) {
             console.error('Erreur lors de la récupération des commentaires:', error);
@@ -112,10 +99,8 @@ export const commentService = {
     },
 
     createComment: async (data: CreateCommentData): Promise<Comment> => {
-        console.log('Service: Tentative de création de commentaire avec données:', data);
         
         const token = await AsyncStorage.getItem('token');
-        console.log('Service: Token récupéré:', token ? 'Présent' : 'Absent');
         
         if (!token) {
             console.error('Service: Token non trouvé dans AsyncStorage');
@@ -123,7 +108,6 @@ export const commentService = {
         }
 
         const userDataStr = await AsyncStorage.getItem('userData');
-        console.log('Service: Données utilisateur récupérées:', userDataStr ? 'Présentes' : 'Absentes');
         
         if (!userDataStr) {
             console.error('Service: Données utilisateur non trouvées dans AsyncStorage');
@@ -131,7 +115,6 @@ export const commentService = {
         }
         
         const userData = JSON.parse(userDataStr);
-        console.log('Service: Données utilisateur parsées:', userData);
         
         const commentData = {
             ...data,
@@ -139,7 +122,6 @@ export const commentService = {
             like: data.like || 0,
             visible: data.visible ?? true
         };
-        console.log('Service: Données du commentaire à envoyer:', commentData);
         
         try {
             const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.comments.create}`, {
@@ -151,7 +133,6 @@ export const commentService = {
                 body: JSON.stringify(commentData),
             });
             
-            console.log('Service: Statut de la réponse:', response.status);
             
             // Vérifier le type de contenu de la réponse
             const contentType = response.headers.get('content-type');
@@ -168,7 +149,6 @@ export const commentService = {
             }
             
             const result = await response.json();
-            console.log('Service: Réponse de création de commentaire:', result);
             return result;
         } catch (error) {
             console.error('Service: Erreur lors de la création du commentaire:', error);

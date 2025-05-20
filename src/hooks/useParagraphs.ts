@@ -30,14 +30,11 @@ export const useParagraphs = (chapterId: string) => {
         'Authorization': `Bearer ${token}`
       };
 
-      console.log('[FETCH] Fetching paragraphs for chapter:', chapterId);
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.getByChapterId(chapterId)}`, {
         headers,
       });
 
-      console.log('[FETCH] Paragraphs response status:', response.status);
       const data = await response.json();
-      console.log('[FETCH] Paragraphs response data:', data);
 
       if (!response.ok) {
         throw new Error(`Erreur ${response.status}: Impossible de récupérer les paragraphes`);

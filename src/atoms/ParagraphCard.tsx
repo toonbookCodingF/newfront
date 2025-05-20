@@ -34,7 +34,6 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({
   const imageUrl = isImage ? `${API_CONFIG.imageBaseURL}/public${content}` : null;
   const canEdit = source === 'myBooks';
 
-  console.log('Image URL:', imageUrl);
 
   const handleImageLoad = () => {
     setIsLoading(false);

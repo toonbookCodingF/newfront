@@ -31,7 +31,6 @@ export const useOeuvre = (bookId: string) => {
         setLoading(true);
         setError(null);
 
-        console.log('Fetching data for bookId:', bookId);
 
         const token = await AsyncStorage.getItem('token');
         if (!token) {
@@ -44,15 +43,11 @@ export const useOeuvre = (bookId: string) => {
         };
 
         // Fetch book details
-        console.log('[FETCH] Fetching book details from:', `${API_CONFIG.baseURL}${ENDPOINTS.books.getById(bookId)}`);
         const bookResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getById(bookId)}`, {
           headers
         });
 
-        console.log('[FETCH] Book response status:', bookResponse.status);
         const bookData = await bookResponse.json();
-        console.log('[FETCH] Book response data:', bookData);
-        console.log('[FETCH] Cover field from API:', bookData.cover);
 
         if (!bookResponse.ok) {
           throw new Error(`[FETCH] Erreur lors de la récupération du livre: ${bookData.message || bookResponse.statusText}`);
@@ -64,18 +59,15 @@ export const useOeuvre = (bookId: string) => {
           coverimage: bookData.cover && bookData.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${bookData.cover}` : undefined
         };
 
-        console.log('[FETCH] Livre formaté:', formattedBook);
         setBook(formattedBook);
 
         // Fetch chapters
-        console.log('[FETCH] Fetching chapters from:', `${API_CONFIG.baseURL}${ENDPOINTS.chapters.getByBookId(bookId)}`);
+
         const chaptersResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.getByBookId(bookId)}`, {
           headers
         });
 
-        console.log('[FETCH] Chapters response status:', chaptersResponse.status);
         const chaptersData = await chaptersResponse.json();
-        console.log('[FETCH] Chapters response data:', chaptersData);
 
         if (!chaptersResponse.ok) {
           throw new Error(`[FETCH] Erreur lors de la récupération des chapitres: ${chaptersData.message || chaptersResponse.statusText}`);

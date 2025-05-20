@@ -10,12 +10,9 @@ export const useBooks = () => {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
-        console.log('Début du chargement des livres');
         const data = await bookService.getAll();
-        console.log('Données brutes des livres:', data);
 
         const formattedBooks: Book[] = data.map((book: any) => {
-          console.log('Traitement du livre:', book);
           const formattedBook = {
             id: book.id,
             title: book.title,
@@ -29,11 +26,9 @@ export const useBooks = () => {
             user_id: book.user_id,
             status: book.status,
           };
-          console.log('Livre formaté:', formattedBook);
           return formattedBook;
         });
 
-        console.log('Livres formatés:', formattedBooks);
         setBooks(formattedBooks);
       } catch (err: any) {
         console.error('Erreur lors de la récupération des livres:', err);

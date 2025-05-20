@@ -29,7 +29,6 @@ export interface UpdateBookData extends Partial<CreateBookData> { }
 
 const getAuthHeaders = async () => {
     const token = await AsyncStorage.getItem('token');
-    console.log('Token récupéré:', token ? 'Token présent' : 'Token manquant');
 
     if (!token) {
         throw new Error('Non authentifié. Veuillez vous reconnecter.');
@@ -40,10 +39,7 @@ const getAuthHeaders = async () => {
         'Authorization': `Bearer ${token}`
     };
 
-    console.log('Headers de la requête:', {
-        ...headers,
-        'Authorization': 'Bearer [TOKEN_MASQUÉ]' // On masque le token dans les logs
-    });
+   
 
     return headers;
 };
@@ -51,11 +47,7 @@ const getAuthHeaders = async () => {
 const handleResponse = async (response: Response) => {
     if (!response.ok) {
         const error = await response.json();
-        console.log('Réponse d\'erreur du serveur:', {
-            status: response.status,
-            message: error.message,
-            headers: response.headers
-        });
+     
 
         if (response.status === 401) {
             throw new Error('Session expirée. Veuillez vous reconnecter.');
@@ -90,7 +82,6 @@ export const bookService = {
 
     create: async (data: CreateBookData): Promise<Book> => {
         const headers = await getAuthHeaders();
-        console.log('Headers avec token:', headers);
 
         const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.create}`, {
             method: 'POST',
@@ -98,11 +89,9 @@ export const bookService = {
             body: JSON.stringify(data),
         });
 
-        console.log('Statut de la réponse:', response.status);
-        console.log('Headers de la réponse:', response.headers);
 
         const result = await handleResponse(response);
-        console.log('Résultat de la création:', result);
+  
 
         if (!result.data || !result.data.id) {
             throw new Error('ID du livre non trouvé dans la réponse');
@@ -123,7 +112,6 @@ export const bookService = {
 
     delete: async (id: string): Promise<void> => {
         try {
-            console.log('Tentative de suppression du livre:', id);
             const headers = await getAuthHeaders();
 
             const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.delete(id)}`, {
@@ -131,7 +119,6 @@ export const bookService = {
                 headers,
             });
 
-            console.log('Statut de la réponse:', response.status);
             return handleResponse(response);
         } catch (error) {
             console.error('Erreur détaillée lors de la suppression:', error);
@@ -141,13 +128,7 @@ export const bookService = {
 
     getByName: async (name: string, limit: number = 10, page: number = 1): Promise<Book[]> => {
         const requestBody = { searchTerm: name, limit, page };
-        console.log('Requête de recherche:', {
-            url: `${API_CONFIG.baseURL}${ENDPOINTS.books.getbyname}`,
-            method: 'POST',
-            headers: API_CONFIG.headers,
-            body: requestBody
-        });
-
+      
         const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getbyname}`, {
             method: 'POST',
             headers: {
@@ -158,9 +139,7 @@ export const bookService = {
             body: JSON.stringify(requestBody)
         });
 
-        console.log('Statut de la réponse:', response.status);
         const responseText = await response.text();
-        console.log('Réponse brute:', responseText);
 
         if (!response.ok) {
             throw new Error(`Erreur ${response.status}: ${responseText}`);

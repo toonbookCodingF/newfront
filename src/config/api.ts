@@ -22,13 +22,7 @@ export const API_CONFIG = {
   }
 };
 
-// Log de la configuration pour le débogage
-console.log('API Configuration:', {
-  baseURL: API_CONFIG.baseURL,
-  imageBaseURL: API_CONFIG.imageBaseURL,
-  staticPath: API_CONFIG.staticPath,
-  platform: Platform.OS
-});
+
 
 export const ENDPOINTS = {
   auth: {
