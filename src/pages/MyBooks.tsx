@@ -47,15 +47,12 @@ const MyBooks: React.FC = () => {
             }
 
             const userId = decodedToken.id;
-            console.log('ID utilisateur extrait du token:', userId);
 
             // Récupérer tous les livres
             const data = await bookService.getAll();
-            console.log('Tous les livres récupérés:', data);
 
             // Filtrer les livres par user_id
             const userBooks = data.filter((book: any) => book.user_id === userId);
-            console.log('Livres filtrés pour l\'utilisateur:', userBooks);
 
             const formattedBooks = userBooks.map((book: any) => ({
                 ...book,

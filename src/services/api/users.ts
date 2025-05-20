@@ -45,7 +45,6 @@ export const userService = {
             }
 
             const userData = await handleResponse(response);
-            console.log('Service: Données utilisateur reçues:', userData);
             return userData.data;
         } catch (error) {
             console.error('Erreur lors de la récupération de l\'utilisateur:', error);

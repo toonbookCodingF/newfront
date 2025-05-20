@@ -23,7 +23,6 @@ export const BookCover: React.FC<BookCoverProps> = ({ cover }) => {
           style={styles.cover}
           resizeMode="cover"
           onError={handleImageError}
-          onLoad={() => console.log('Image chargée avec succès', cover)}
       
         />
       ) : (

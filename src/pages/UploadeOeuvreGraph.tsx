@@ -108,14 +108,12 @@ export default function UploadeOeuvreGraph() {
                 order: 1,
             };
 
-            console.log('Envoi des données du chapitre:', chapterData);
 
             const chapterResponse = await apiFetch<ChapterResponse>('/chapters/create', {
                 method: 'POST',
                 body: JSON.stringify(chapterData),
             });
 
-            console.log('Réponse création chapitre:', chapterResponse);
 
             if (!chapterResponse.data?.data?.id) {
                 throw new Error('Erreur lors de la création du chapitre: Structure de réponse invalide');
@@ -149,13 +147,7 @@ export default function UploadeOeuvreGraph() {
                 formData.append('type', 'image');
                 formData.append('order', (i + 1).toString());
 
-                console.log('Envoi de l\'image:', {
-                    chapter_id: chapterId,
-                    order: i + 1,
-                    fileName: image.fileName,
-                    size: image.size,
-                    type: image.type
-                });
+                
 
                 const uploadResponse = await fetch(`${API_CONFIG.baseURL}/bookcontents`, {
                     method: 'POST',
@@ -171,7 +163,6 @@ export default function UploadeOeuvreGraph() {
                 }
 
                 const uploadData = await uploadResponse.json();
-                console.log('Réponse upload image:', uploadData);
             }
 
             Alert.alert(

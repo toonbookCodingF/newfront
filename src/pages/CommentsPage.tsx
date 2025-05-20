@@ -63,8 +63,6 @@ export const CommentsPage = () => {
 
     const loadComments = async () => {
         try {
-            console.log('=== DÉBUT DU CHARGEMENT DES COMMENTAIRES ===');
-            console.log('bookContentId:', bookContentId);
             
             if (!bookContentId) {
                 console.error('bookContentId manquant');
@@ -74,13 +72,9 @@ export const CommentsPage = () => {
             }
 
             setLoading(true);
-            console.log('Appel du service getCommentsByBookContent...');
             const response = await commentService.getCommentsByBookContent(bookContentId);
-            console.log('Réponse du service:', response);
-            console.log('Nombre de commentaires reçus:', response.length);
 
             if (!response || response.length === 0) {
-                console.log('Aucun commentaire reçu');
                 setComments([]);
                 setLoading(false);
                 return;
@@ -88,10 +82,8 @@ export const CommentsPage = () => {
 
             const userDataStr = await AsyncStorage.getItem('userData');
             const currentUser = userDataStr ? JSON.parse(userDataStr) : null;
-            console.log('Utilisateur actuel:', currentUser);
 
             const uniqueUserIds = new Set(response.map(comment => comment.user_id));
-            console.log('IDs utilisateurs uniques:', Array.from(uniqueUserIds));
 
             const userPromises = Array.from(uniqueUserIds).map(async (userId) => {
                 try {
@@ -108,23 +100,18 @@ export const CommentsPage = () => {
             userResults.forEach(result => {
                 Object.assign(userMap, result);
             });
-            console.log('Map des utilisateurs:', userMap);
 
             const commentsWithUsers = response.map(comment => ({
                 ...comment,
                 user: userMap[comment.user_id] || currentUser,
                 parentComment_id: (comment as any).parentcomment_id
             }));
-            console.log('Commentaires avec utilisateurs:', commentsWithUsers);
 
             const mainComments = commentsWithUsers.filter(comment => {
-                console.log('Vérification commentaire:', comment.id, 'parentComment_id:', comment.parentComment_id);
                 return comment.parentComment_id === null;
             });
-            console.log('Commentaires principaux:', mainComments);
 
             const replies = commentsWithUsers.filter(comment => comment.parentComment_id !== null);
-            console.log('Réponses:', replies);
 
             const organizedComments = mainComments.map(comment => {
                 const commentReplies = replies.filter(reply => 
@@ -135,14 +122,11 @@ export const CommentsPage = () => {
                     replies: commentReplies
                 };
             });
-            console.log('Commentaires organisés:', organizedComments);
 
             // Charger l'état des likes pour tous les commentaires
             const commentsWithLikes = await loadLikedComments(organizedComments);
-            console.log('Commentaires avec likes:', commentsWithLikes);
             
             setComments(commentsWithLikes);
-            console.log('=== FIN DU CHARGEMENT DES COMMENTAIRES ===');
         } catch (error) {
             console.error('Erreur lors du chargement des commentaires:', error);
             setError('Impossible de charger les commentaires. Veuillez réessayer plus tard.');
@@ -155,8 +139,6 @@ export const CommentsPage = () => {
         if (!newComment.trim()) return;
 
         try {
-            console.log('Tentative d\'ajout de commentaire');
-            console.log('bookContentId reçu:', bookContentId);
             
             const bookContentIdNum = Number(bookContentId);
             if (isNaN(bookContentIdNum)) {
@@ -166,7 +148,6 @@ export const CommentsPage = () => {
             }
             
             const userData = await AsyncStorage.getItem('userData');
-            console.log('Données utilisateur récupérées:', userData);
             
             if (!userData) {
                 console.error('Aucune donnée utilisateur trouvée dans AsyncStorage');
@@ -175,7 +156,6 @@ export const CommentsPage = () => {
             }
             
             const user = JSON.parse(userData);
-            console.log('Données utilisateur parsées:', user);
 
             const commentData = {
                 content: newComment,
@@ -186,10 +166,8 @@ export const CommentsPage = () => {
                 visible: true
             };
             
-            console.log('Données du commentaire à envoyer:', commentData);
             
             const response = await commentService.createComment(commentData);
-            console.log('Commentaire créé avec succès:', response);
             
             // Recharger tous les commentaires après l'ajout
             await loadComments();
