@@ -347,12 +347,11 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
         <ParagraphCard
           content={item.content}
           type={item.type}
-          onPress={() => {
-            if (source === 'myBooks') {
-              setEditingParagraphId(item.id);
-              setEditedContent(item.content);
-            }
-          }}
+          id={item.id.toString()}
+          source={source}
+          onEditPress={() => startEditingContent(item)}
+          onDeletePress={() => handleDeleteContent(item.id)}
+          onImageEdit={(newImageUri) => handleUpdateImage(item.id, newImageUri)}
         />
       </View>
     );

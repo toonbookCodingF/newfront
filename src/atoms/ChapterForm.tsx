@@ -20,6 +20,12 @@ export const ChapterForm: React.FC<ChapterFormProps> = ({
   loading = false,
   error = null,
 }) => {
+  const handleContentChange = (text: string) => {
+    // On stocke le texte avec les marqueurs mais on affiche le texte original
+    const displayText = text.replace(/\|\|\|/g, '');
+    onContentChange(text);
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
@@ -38,8 +44,8 @@ export const ChapterForm: React.FC<ChapterFormProps> = ({
           placeholder="Écris ton texte ici..."
           placeholderTextColor="#aaa"
           multiline
-          value={content}
-          onChangeText={onContentChange}
+          value={content.replace(/\|\|\|/g, '')}
+          onChangeText={handleContentChange}
           textAlignVertical="top"
         />
 

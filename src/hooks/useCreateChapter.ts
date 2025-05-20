@@ -22,18 +22,14 @@ export const useCreateChapter = () => {
       setIsLoading(true);
       setError(null);
       
-      console.log('Création de chapitre - Paramètres reçus:', { bookId, title, order });
-      
       // S'assurer que l'ordre est un nombre valide et positif
       const validOrder = (typeof order === 'number' && !isNaN(order) && order > 0) ? order : 1;
-      console.log('Ordre validé:', validOrder);
       
       const result = await chapterService.createChapter({
         title,
         book_id: bookId,
         order: validOrder,
       });
-      console.log('Chapitre créé avec succès:', result);
 
       return result;
     } catch (err) {

@@ -42,7 +42,6 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
   // Recharger les données quand on revient sur la page
   useFocusEffect(
     React.useCallback(() => {
-      console.log('Rechargement des données de l\'œuvre');
       refetch();
     }, [refetch])
   );

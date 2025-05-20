@@ -18,7 +18,6 @@ interface ParagraphCardProps {
   onEditPress?: () => void;
   onDeletePress?: () => void;
   onImageEdit?: (newImageUri: string) => void;
-  onPress?: () => void;
 }
 
 export const ParagraphCard: React.FC<ParagraphCardProps> = ({
@@ -30,7 +29,6 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({
   onEditPress,
   onDeletePress,
   onImageEdit,
-  onPress,
 }) => {
   const navigation = useNavigation<NavigationProp>();
   const [isLoading, setIsLoading] = useState(true);
@@ -83,9 +81,9 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({
     }
   };
 
-  const renderContent = () => {
-    if (type === 'image') {
-      return (
+  return (
+    <View style={styles.container}>
+      {isImage ? (
         <View style={styles.imageContainer}>
           {isLoading && (
             <View style={styles.loadingContainer}>
@@ -106,38 +104,34 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({
             />
           )}
         </View>
-      );
-    }
-    return <Text style={styles.text}>{content}</Text>;
-  };
-
-  return (
-    <TouchableOpacity
-      style={styles.container}
-      onPress={onPress}
-      disabled={!onPress}
-    >
-      {renderContent()}
-      {source === 'myBooks' && (
-        <View style={styles.actions}>
-          {type !== 'image' && onEditPress && (
-            <TouchableOpacity onPress={onEditPress} style={styles.actionButton}>
-              <Ionicons name="create-outline" size={20} color="#fff" />
-            </TouchableOpacity>
-          )}
-          {onDeletePress && (
-            <TouchableOpacity onPress={onDeletePress} style={styles.actionButton}>
-              <Ionicons name="trash-outline" size={20} color="#fff" />
-            </TouchableOpacity>
-          )}
-        </View>
+      ) : (
+        <Text style={styles.text}>{content}</Text>
       )}
-      {onCommentPress && (
-        <TouchableOpacity onPress={onCommentPress} style={styles.commentButton}>
-          <Ionicons name="chatbubble-outline" size={20} color="#fff" />
+      <View style={styles.buttonContainer}>
+        {source === 'myBooks' && (
+          <>
+            {!isImage && onEditPress && (
+              <TouchableOpacity style={[styles.actionButton, styles.editButton]} onPress={onEditPress}>
+                <Ionicons name="pencil-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+            )}
+            {isImage && onImageEdit && (
+              <TouchableOpacity style={[styles.actionButton, styles.editButton]} onPress={handleEditImage}>
+                <Ionicons name="image-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+            )}
+            {onDeletePress && (
+              <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={onDeletePress}>
+                <Ionicons name="trash-outline" size={24} color="#fff" />
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+        <TouchableOpacity style={[styles.actionButton, styles.commentButton]} onPress={handleCommentPress}>
+          <Ionicons name="chatbubble-outline" size={24} color="#fff" />
         </TouchableOpacity>
-      )}
-    </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
@@ -194,24 +188,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
-  actions: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    flexDirection: 'row',
-    gap: 10,
-  },
-  actionButton: {
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 5,
-    borderRadius: 15,
-  },
-  commentButton: {
+  buttonContainer: {
     position: 'absolute',
     bottom: 10,
     right: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 5,
-    borderRadius: 15,
+    flexDirection: 'row',
+    gap: 8,
+  },
+  actionButton: {
+    backgroundColor: '#A020F0',
+    padding: 8,
+    borderRadius: 20,
+  },
+  editButton: {
+    backgroundColor: '#4B0082',
+  },
+  deleteButton: {
+    backgroundColor: '#8B0000',
+  },
+  commentButton: {
+    backgroundColor: '#A020F0',
   },
 }); 

@@ -43,19 +43,12 @@ export const chapterService = {
     try {
       const headers = await getAuthHeaders();
      
-      // Validation stricte de l'ordre
-      const order = typeof params.order === 'number' && !isNaN(params.order) && params.order > 0 
-        ? params.order 
-        : 1;
-
-      console.log('Service - Paramètres de création:', { ...params, order });
-      
+      const order = params.order ?? 1;
       const requestBody = {
-        ...params,
-        status: params.status || "published",
-        order: order,
+        title: params.title,
+        book_id: params.book_id,
+        order,
       };
-      console.log('Service - Corps de la requête:', requestBody);
 
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.create}`, {
         method: 'POST',
@@ -64,27 +57,16 @@ export const chapterService = {
       });
 
       const responseText = await response.text();
-      console.log('Service - Réponse brute:', responseText);
 
       if (!response.ok) {
         if (response.status === 401) {
           throw new Error('Token manquant ou invalide');
         }
-        // Vérifier si l'erreur concerne l'ordre
-        if (response.status === 400 && responseText.includes("L'ordre est déjà utilisé")) {
-          console.error('Service - Erreur d\'ordre déjà utilisé');
-          throw new Error("L'ordre est déjà utilisé dans ce livre. Veuillez réessayer.");
-        }
         throw new Error(`Erreur ${response.status}: ${responseText}`);
       }
 
       const result = JSON.parse(responseText);
-      console.log('Service - Réponse parsée:', result);
-      
-      const chapterId = result.data?.id;
-      if (!chapterId) throw new Error("ID du chapitre introuvable dans la réponse.");
-
-      return { id: chapterId, title: params.title, bookId: params.book_id };
+      return result;
     } catch (error: any) {
       console.error('Service - Erreur complète:', error);
       throw new Error(error.message || "Une erreur est survenue lors de la création du chapitre");
