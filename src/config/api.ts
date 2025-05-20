@@ -45,6 +45,7 @@ export const ENDPOINTS = {
   },
   chapters: {
     getByBookId: (bookId: string) => `/chapters/book/${bookId}`,
+    getById: (id: string) => `/chapters/${id}`,
     create: '/chapters/create',
     update: (id: string) => `/chapters/${id}`,
     delete: (id: string) => `/chapters/${id}`,

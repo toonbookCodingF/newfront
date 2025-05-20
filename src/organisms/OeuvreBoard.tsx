@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { BookCover } from '../molecules/BookCover';
@@ -27,7 +27,7 @@ interface OeuvreBoardProps {
 
 export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = false }) => {
   const navigation = useNavigation<OeuvreBoardNavigationProp>();
-  const { book, chapters, loading, error } = useOeuvre(id);
+  const { book, chapters, loading, error, refetch } = useOeuvre(id);
   const { updateBook, isLoading: isUpdating } = useUpdateBook();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState('');
@@ -38,6 +38,14 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
   const [uploading, setUploading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
+
+  // Recharger les données quand on revient sur la page
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Rechargement des données de l\'œuvre');
+      refetch();
+    }, [refetch])
+  );
 
   // Charger les catégories
   useEffect(() => {
@@ -111,6 +119,33 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
       bookTitle: book?.title || '',
       fromMyBooks
     });
+  };
+
+  const handleAddChapter = () => {
+    // Trouver l'ordre maximum existant
+    const maxOrder = chapters.reduce((max, chapter) => Math.max(max, chapter.order || 0), 0);
+    
+    // Créer un Set des ordres déjà utilisés
+    const usedOrders = new Set(chapters.map(chapter => chapter.order || 0));
+    
+    // Trouver le prochain ordre disponible
+    let nextOrder = maxOrder + 1;
+    while (usedOrders.has(nextOrder)) {
+      nextOrder++;
+    }
+
+    // Vérifier le type de livre
+    if (book?.booktype_id === 4) { // Type graphique
+      navigation.navigate('UploadeOeuvreGraph', {
+        bookId: id,
+        nextOrder
+      });
+    } else if (book?.booktype_id === 1) { // Type littéraire
+      navigation.navigate('CreateChapterPage', {
+        bookId: id,
+        nextOrder
+      });
+    }
   };
 
   if (loading) {
@@ -218,13 +253,24 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
             <Text style={styles.chapterHeader}>Chapitres</Text>
 
             {chapters.length > 0 ? (
-              chapters.map((chapter) => (
+              <>
+                {chapters.map((chapter) => (
                 <ChapterButton
                   key={chapter.id}
                   title={chapter.title}
                   onPress={() => goToParagraphs(chapter.id, chapter.title)}
                 />
-              ))
+                ))}
+                {fromMyBooks && (
+                  <TouchableOpacity
+                    style={styles.addChapterButton}
+                    onPress={handleAddChapter}
+                  >
+                    <Ionicons name="add-circle-outline" size={24} color="white" />
+                    <Text style={styles.addChapterButtonText}>Ajouter un chapitre</Text>
+                  </TouchableOpacity>
+                )}
+              </>
             ) : (
               <Text style={styles.noChapters}>Aucun chapitre disponible.</Text>
             )}
@@ -319,5 +365,19 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  addChapterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#A020F0',
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 10,
+    marginHorizontal: 20,
+  },
+  addChapterButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    marginLeft: 8,
   },
 }); 

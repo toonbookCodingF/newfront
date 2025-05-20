@@ -7,11 +7,11 @@ type CreateChapterPageRouteProp = RouteProp<RootStackParamList, 'CreateChapterPa
 
 export default function CreateChapterPage() {
   const route = useRoute<CreateChapterPageRouteProp>();
-  const { bookId } = route.params;
+  const { bookId, nextOrder } = route.params;
   
   if (!bookId) {
     return null;
   }
 
-  return <CreateChapterBoard bookId={bookId} />;
+  return <CreateChapterBoard bookId={bookId} nextOrder={nextOrder} />;
 } 

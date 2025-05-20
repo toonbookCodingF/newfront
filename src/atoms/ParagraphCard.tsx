@@ -1,31 +1,36 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { API_CONFIG } from '../config/api';
+import * as ImagePicker from 'expo-image-picker';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 interface ParagraphCardProps {
   content: string;
+  type: string;
+  id?: string;
   onCommentPress?: () => void;
-  id: string;
-  type?: string;
   source?: 'myBooks' | 'reading' | 'other';
   onEditPress?: () => void;
   onDeletePress?: () => void;
+  onImageEdit?: (newImageUri: string) => void;
+  onPress?: () => void;
 }
 
 export const ParagraphCard: React.FC<ParagraphCardProps> = ({
   content,
-  type = 'text',
+  type,
+  id,
   onCommentPress,
   source = 'other',
-  id,
   onEditPress,
-  onDeletePress
+  onDeletePress,
+  onImageEdit,
+  onPress,
 }) => {
   const navigation = useNavigation<NavigationProp>();
   const [isLoading, setIsLoading] = useState(true);
@@ -33,7 +38,6 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({
   const isImage = type === 'image';
   const imageUrl = isImage ? `${API_CONFIG.imageBaseURL}/public${content}` : null;
   const canEdit = source === 'myBooks';
-
 
   const handleImageLoad = () => {
     setIsLoading(false);
@@ -47,12 +51,41 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({
   };
 
   const handleCommentPress = () => {
-    navigation.navigate('Comments', { bookContentId: id });
+    if (id) {
+      navigation.navigate('Comments', { bookContentId: id });
+    }
   };
 
-  return (
-    <View style={styles.container}>
-      {isImage ? (
+  const handleEditImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert(
+          'Permission requise',
+          'Désolé, nous avons besoin de l\'accès à votre galerie pour télécharger des images.'
+        );
+        return;
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 1,
+        presentationStyle: ImagePicker.UIImagePickerPresentationStyle.FULL_SCREEN,
+      });
+
+      if (!result.canceled && onImageEdit) {
+        await onImageEdit(result.assets[0].uri);
+      }
+    } catch (err) {
+      console.error('Erreur lors de la sélection de l\'image:', err);
+      Alert.alert('Erreur', 'Une erreur est survenue lors de la sélection de l\'image');
+    }
+  };
+
+  const renderContent = () => {
+    if (type === 'image') {
+      return (
         <View style={styles.imageContainer}>
           {isLoading && (
             <View style={styles.loadingContainer}>
@@ -73,27 +106,38 @@ export const ParagraphCard: React.FC<ParagraphCardProps> = ({
             />
           )}
         </View>
-      ) : (
-        <Text style={styles.text}>{content}</Text>
-      )}
-      <View style={styles.buttonContainer}>
-        {canEdit && (
-          <>
-            {!isImage && (
-              <TouchableOpacity style={[styles.actionButton, styles.editButton]} onPress={onEditPress}>
-                <Ionicons name="pencil-outline" size={24} color="#fff" />
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={[styles.actionButton, styles.deleteButton]} onPress={onDeletePress}>
-              <Ionicons name="trash-outline" size={24} color="#fff" />
+      );
+    }
+    return <Text style={styles.text}>{content}</Text>;
+  };
+
+  return (
+    <TouchableOpacity
+      style={styles.container}
+      onPress={onPress}
+      disabled={!onPress}
+    >
+      {renderContent()}
+      {source === 'myBooks' && (
+        <View style={styles.actions}>
+          {type !== 'image' && onEditPress && (
+            <TouchableOpacity onPress={onEditPress} style={styles.actionButton}>
+              <Ionicons name="create-outline" size={20} color="#fff" />
             </TouchableOpacity>
-          </>
-        )}
-        <TouchableOpacity style={[styles.actionButton, styles.commentButton]} onPress={handleCommentPress}>
-          <Ionicons name="chatbubble-outline" size={24} color="#fff" />
+          )}
+          {onDeletePress && (
+            <TouchableOpacity onPress={onDeletePress} style={styles.actionButton}>
+              <Ionicons name="trash-outline" size={20} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+      {onCommentPress && (
+        <TouchableOpacity onPress={onCommentPress} style={styles.commentButton}>
+          <Ionicons name="chatbubble-outline" size={20} color="#fff" />
         </TouchableOpacity>
-      </View>
-    </View>
+      )}
+    </TouchableOpacity>
   );
 };
 
@@ -150,25 +194,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 24,
   },
-  buttonContainer: {
+  actions: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    flexDirection: 'row',
+    gap: 10,
+  },
+  actionButton: {
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 5,
+    borderRadius: 15,
+  },
+  commentButton: {
     position: 'absolute',
     bottom: 10,
     right: 10,
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
-    backgroundColor: '#A020F0',
-    padding: 8,
-    borderRadius: 20,
-  },
-  editButton: {
-    backgroundColor: '#4B0082',
-  },
-  deleteButton: {
-    backgroundColor: '#8B0000',
-  },
-  commentButton: {
-    backgroundColor: '#A020F0',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    padding: 5,
+    borderRadius: 15,
   },
 }); 

@@ -72,12 +72,58 @@ export const bookService = {
     },
 
     getById: async (id: string): Promise<Book> => {
-        const headers = await getAuthHeaders();
-        const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getById(id)}`, {
-            method: 'GET',
-            headers,
-        });
-        return handleResponse(response);
+        try {
+            const headers = await getAuthHeaders();
+
+            const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getById(id)}`, {
+                method: 'GET',
+                headers,
+            });
+
+            const responseText = await response.text();
+
+            if (!response.ok) {
+                throw new Error(`Erreur ${response.status}: ${responseText}`);
+            }
+
+            const data = JSON.parse(responseText);
+            
+            // Vérifier si la réponse est un tableau ou un objet
+            let bookData;
+            if (Array.isArray(data)) {
+                if (data.length === 0) {
+                    throw new Error('Aucun livre trouvé');
+                }
+                bookData = data[0];
+            } else if (data.data) {
+                bookData = data.data;
+            } else if (typeof data === 'object') {
+                bookData = data;
+            } else {
+                throw new Error('Format de réponse invalide');
+            }
+
+            // Vérifier les propriétés requises
+            if (!bookData.id) {
+                throw new Error('Format de réponse invalide: ID manquant');
+            }
+
+            return {
+                id: bookData.id,
+                title: bookData.title || '',
+                description: bookData.description || '',
+                coverimage: bookData.cover || undefined,
+                createdAt: bookData.createdat || new Date().toISOString(),
+                updatedAt: bookData.updatedat || new Date().toISOString(),
+                category_id: bookData.category_id || 1,
+                booktype_id: bookData.booktype_id || null,
+                user_id: bookData.user_id || 0,
+                status: bookData.status || 'draft'
+            };
+        } catch (error) {
+            console.error('Erreur détaillée lors de la récupération du livre:', error);
+            throw error;
+        }
     },
 
     create: async (data: CreateBookData): Promise<Book> => {

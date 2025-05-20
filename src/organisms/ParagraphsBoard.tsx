@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert, TextInput } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -9,9 +9,13 @@ import { useParagraphs } from '../hooks/useParagraphs';
 import { useUpdateChapter } from '../hooks/useUpdateChapter';
 import { useDeleteContent } from '../hooks/useDeleteContent';
 import { useCreateChapter } from '../hooks/useCreateChapter';
+import { useUpdateParagraphOrder } from '../hooks/useUpdateParagraphOrder';
+import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
+import { bookService } from '../services/api/books';
+import { chapterService } from '../services/api/chapters';
 
 type ParagraphsBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type ParagraphsRouteProp = RouteProp<RootStackParamList, 'Paragraphs'>;
@@ -44,13 +48,54 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
   const { updateChapter, updateContent, isLoading: isUpdating } = useUpdateChapter();
   const { deleteContent, isLoading: isDeleting } = useDeleteContent();
   const { createBookContent } = useCreateChapter();
+  const { updateOrder } = useUpdateParagraphOrder();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(chapterTitle);
   const [editingParagraphId, setEditingParagraphId] = useState<number | null>(null);
   const [editedContent, setEditedContent] = useState('');
+  const [bookType, setBookType] = useState<number | null>(null);
+  const [isLoadingBookType, setIsLoadingBookType] = useState(true);
+  const [bookTypeError, setBookTypeError] = useState<string | null>(null);
 
   // Déterminer la source en fonction de la route précédente
   const source = route.params.fromMyBooks ? 'myBooks' : 'reading';
+
+  useEffect(() => {
+    const fetchBookType = async () => {
+      try {
+        setIsLoadingBookType(true);
+        setBookTypeError(null);
+        
+        // Récupérer d'abord le chapitre
+        const chapter = await chapterService.getById(chapterId);
+
+        if (!chapter) {
+          throw new Error('Impossible de récupérer les informations du chapitre');
+        }
+
+        // Vérifier si nous avons l'ID du livre
+        const bookIdFromChapter = chapter.book_id || chapter.bookId;
+        if (!bookIdFromChapter) {
+          throw new Error('ID du livre non trouvé dans le chapitre');
+        }
+
+        // Ensuite récupérer le livre avec l'ID du livre du chapitre
+        const book = await bookService.getById(bookIdFromChapter.toString());
+
+        if (!book) {
+          throw new Error('Impossible de récupérer les informations du livre');
+        }
+
+        setBookType(book.booktype_id);
+      } catch (err) {
+        console.error('Erreur lors de la récupération du type de livre:', err);
+        setBookTypeError(err instanceof Error ? err.message : 'Erreur lors de la récupération du type de livre');
+      } finally {
+        setIsLoadingBookType(false);
+      }
+    };
+    fetchBookType();
+  }, [chapterId]);
 
   const goToComments = (bookContentId: string) => {
     navigation.navigate('Comments', {
@@ -134,6 +179,28 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
     }
   };
 
+  const handleAddContent = async () => {
+    try {
+      // Trouver le plus grand ordre existant
+      const maxOrder = paragraphs.reduce((max, paragraph) => 
+        Math.max(max, (paragraph as any).order || 0), 0);
+
+      if (bookType === 4) {
+        // Si c'est un type 4, on affiche le sélecteur d'image
+        await handleAddImage();
+      } else {
+        // Sinon, on crée un paragraphe texte normal
+        const defaultContent = 'Commencez à écrire votre histoire...';
+        await createBookContent(parseInt(chapterId), defaultContent, maxOrder + 1);
+        await refresh();
+        Alert.alert('Succès', 'Un nouveau paragraphe a été créé. Vous pouvez maintenant le modifier.');
+      }
+    } catch (err: unknown) {
+      console.error('Erreur lors de la création du contenu:', err);
+      Alert.alert('Erreur', 'Une erreur est survenue lors de la création du contenu');
+    }
+  };
+
   const handleAddImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -165,22 +232,24 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
         formData.append('chapter_id', chapterId);
         formData.append('type', 'image');
         formData.append('order', (maxOrder + 1).toString());
+
         const imageUri = asset.uri;
         const imageName = imageUri.split('/').pop() || `image_${Date.now()}.jpg`;
         const imageType = 'image/jpeg';
-        formData.append('image', {
+
+        // Créer l'objet fichier pour FormData
+        const imageFile = {
           uri: imageUri,
           type: imageType,
           name: imageName
-        } as any);
+        } as any;
+
+        formData.append('image', imageFile);
 
         const token = await AsyncStorage.getItem('token');
         if (!token) {
           throw new Error('Non authentifié. Veuillez vous reconnecter.');
         }
-
-        // Ajouter un délai pour éviter les requêtes simultanées
-        await new Promise(resolve => setTimeout(resolve, 1000));
 
         const uploadResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`, {
           method: 'POST',
@@ -212,19 +281,109 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
     }
   };
 
-  const handleAddContent = async () => {
+  const handleUpdateImage = async (paragraphId: number, newImageUri: string) => {
     try {
-      const defaultContent = 'Commencez à écrire votre histoire...';
-      await createBookContent(parseInt(chapterId), defaultContent);
+      // Trouver le paragraphe existant pour récupérer son ordre
+      const existingParagraph = paragraphs.find(p => p.id === paragraphId) as Paragraph;
+      if (!existingParagraph) {
+        throw new Error('Paragraphe non trouvé');
+      }
+
+      // Créer le FormData
+      const formData = new FormData();
+      formData.append('content', '');
+      formData.append('chapter_id', chapterId);
+      formData.append('type', 'image');
+      formData.append('order', existingParagraph.order.toString());
+
+      const imageName = newImageUri.split('/').pop() || `image_${Date.now()}.jpg`;
+      const imageType = 'image/jpeg';
+
+      // Créer l'objet fichier pour FormData
+      const imageFile = {
+        uri: newImageUri,
+        type: imageType,
+        name: imageName
+      } as any;
+
+      formData.append('image', imageFile);
+
+      const token = await AsyncStorage.getItem('token');
+      if (!token) {
+        throw new Error('Non authentifié. Veuillez vous reconnecter.');
+      }
+
+      const requestUrl = `${API_CONFIG.baseURL}/bookcontents/${paragraphId}`;
+
+      const uploadResponse = await fetch(requestUrl, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data',
+        },
+        body: formData
+      });
+
+      const responseText = await uploadResponse.text();
+
+      if (!uploadResponse.ok) {
+        throw new Error(`Erreur ${uploadResponse.status}: ${responseText}`);
+      }
+
+      // Attendre un peu avant de rafraîchir
+      await new Promise(resolve => setTimeout(resolve, 500));
       await refresh();
-      Alert.alert('Succès', 'Un nouveau paragraphe a été créé. Vous pouvez maintenant le modifier.');
-    } catch (err: unknown) {
-      console.error('Erreur lors de la création du paragraphe:', err);
-      Alert.alert('Erreur', 'Une erreur est survenue lors de la création du paragraphe');
+      Alert.alert('Succès', 'L\'image a été mise à jour avec succès');
+    } catch (err) {
+      console.error('Erreur détaillée lors de la mise à jour de l\'image:', err);
+      Alert.alert(
+        'Erreur',
+        err instanceof Error ? err.message : 'Une erreur est survenue lors de la mise à jour de l\'image'
+      );
     }
   };
 
-  if (loading) {
+  const handleDragEnd = async ({ data }: { data: any[] }) => {
+    try {
+      // Mettre à jour l'ordre de chaque paragraphe
+      const updatePromises = data.map((item, index) => 
+        updateOrder(item.id, index + 1)
+      );
+
+      await Promise.all(updatePromises);
+      refresh(); // Rafraîchir la liste
+    } catch (err) {
+      console.error('Erreur lors de la mise à jour des ordres:', err);
+      Alert.alert('Erreur', 'Une erreur est survenue lors de la réorganisation des paragraphes');
+    }
+  };
+
+  const renderItem = ({ item, drag, isActive }: RenderItemParams<any>) => {
+    return (
+      <TouchableOpacity
+        onLongPress={drag}
+        disabled={isActive}
+        style={[
+          styles.paragraphContainer,
+          isActive && styles.dragging
+        ]}
+      >
+        <ParagraphCard
+          content={item.content}
+          type={item.type}
+          onPress={() => {
+            if (source === 'myBooks') {
+              setEditingParagraphId(item.id);
+              setEditedContent(item.content);
+            }
+          }}
+        />
+      </TouchableOpacity>
+    );
+  };
+
+  if (loading || isLoadingBookType) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size={36} color="#fff" />
@@ -232,10 +391,10 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
     );
   }
 
-  if (error) {
+  if (error || bookTypeError) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>{error || bookTypeError}</Text>
       </View>
     );
   }
@@ -282,52 +441,24 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {paragraphs.length > 0 ? (
-          paragraphs.map((paragraph) => (
-            <View key={paragraph.id}>
-              {editingParagraphId === paragraph.id ? (
-                <View style={styles.editContentContainer}>
-                  <TextInput
-                    style={styles.editContentInput}
-                    value={editedContent}
-                    onChangeText={setEditedContent}
-                    multiline
-                    placeholder="Contenu du paragraphe"
-                    placeholderTextColor="#aaa"
-                  />
-                  <View style={styles.editContentButtons}>
-                    <TouchableOpacity
-                      onPress={() => handleUpdateContent(paragraph.id)}
-                      disabled={isUpdating}
-                      style={styles.editButton}
-                    >
-                      <Ionicons name="checkmark" size={24} color="white" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={() => {
-                        setEditingParagraphId(null);
-                        setEditedContent('');
-                      }}
-                      style={styles.editButton}
-                    >
-                      <Ionicons name="close" size={24} color="white" />
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              ) : (
-                <View style={styles.paragraphContainer}>
-                  <ParagraphCard
-                    content={paragraph.content}
-                    type={paragraph.type}
-                    id={paragraph.id.toString()}
-                    onCommentPress={() => goToComments(paragraph.id.toString())}
-                    source={source}
-                    onEditPress={source === 'myBooks' ? () => startEditingContent(paragraph) : undefined}
-                    onDeletePress={source === 'myBooks' ? () => handleDeleteContent(paragraph.id) : undefined}
-                  />
-                </View>
-              )}
-            </View>
-          ))
+          <>
+            <DraggableFlatList
+              data={paragraphs}
+              renderItem={renderItem}
+              keyExtractor={(item) => item.id.toString()}
+              onDragEnd={handleDragEnd}
+              contentContainerStyle={styles.paragraphsList}
+            />
+            {source === 'myBooks' && (
+              <TouchableOpacity
+                style={styles.addContentButton}
+                onPress={handleAddContent}
+              >
+                <Ionicons name="add-circle-outline" size={24} color="white" />
+                <Text style={styles.addContentButtonText}>Ajouter du contenu</Text>
+              </TouchableOpacity>
+            )}
+          </>
         ) : (
           <View style={styles.noContentContainer}>
             <Text style={styles.noParagraphs}>Aucun contenu disponible.</Text>
@@ -416,43 +547,14 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   paragraphContainer: {
-    position: 'relative',
-    marginBottom: 15,
+    marginVertical: 8,
   },
-  editParagraphButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    padding: 5,
-    borderRadius: 15,
+  dragging: {
+    opacity: 0.5,
+    transform: [{ scale: 1.05 }],
   },
-  editContentContainer: {
-    backgroundColor: '#800080',
-    borderRadius: 10,
-    padding: 15,
-    marginBottom: 15,
-  },
-  editContentInput: {
-    color: 'white',
-    fontSize: 16,
-    minHeight: 100,
-    textAlignVertical: 'top',
-    borderWidth: 1,
-    borderColor: 'white',
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 10,
-  },
-  editContentButtons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 10,
-  },
-  editButton: {
-    backgroundColor: '#4CAF50',
-    padding: 5,
-    borderRadius: 15,
+  paragraphsList: {
+    paddingBottom: 20,
   },
   headerButtons: {
     flexDirection: 'row',
