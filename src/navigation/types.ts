@@ -23,6 +23,16 @@ export type RootStackParamList = {
   Comments: {
     bookContentId: string;
   };
+  Home: undefined;
+  Login: undefined;
+  Register: undefined;
+  CreateBook: undefined;
+  CreateChapter: undefined;
+  CreateParagraph: undefined;
+  MyReadings: undefined;
+  Oeuvre: { id: string };
+  Chapter: { id: string };
+  Paragraph: { id: string };
 };
 
 export type AuthStackParamList = {
@@ -55,6 +65,8 @@ export type LibraryStackParamList = {
     fromMyBooks?: boolean;
   };
   MyBooks: undefined;
+  MyReadings: undefined;
+  MyFavorites: undefined;
   CreateChapterPage: {
     bookId: string;
     nextOrder?: number;
