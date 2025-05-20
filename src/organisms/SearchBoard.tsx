@@ -4,9 +4,9 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
 import { BookList } from '../molecules/BookList';
-import { SearchInput } from '../molecules/SearchInput';
 import { useSearch } from '../hooks/useSearch';
 import { Book } from '../services/api/books';
+import { SearchInput } from '../molecules/SearchInput';
 
 type SearchBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -44,20 +44,14 @@ export const SearchBoard: React.FC = () => {
         onChangeText={handleSearch}
         placeholder="Rechercher un livre..."
       />
-      {error ? (
-        <Text style={styles.errorText}>{error}</Text>
-      ) : (
-        <>
-          <BookList 
-            books={filteredBooks} 
-            onBookPress={goToOeuvrePage}
-          />
-          {isSearching && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#fff" />
-            </View>
-          )}
-        </>
+      <BookList 
+        books={filteredBooks} 
+        onBookPress={goToOeuvrePage}
+      />
+      {isSearching && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#fff" />
+        </View>
       )}
     </View>
   );
@@ -68,15 +62,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#A020F0',
   },
-  errorText: {
-    color: 'red',
-    fontSize: 18,
-    textAlign: 'center',
-  },
   loadingContainer: {
     position: 'absolute',
     top: '50%',
     left: '50%',
     transform: [{ translateX: -20 }, { translateY: -20 }],
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 18,
+    textAlign: 'center',
   }
 }); 

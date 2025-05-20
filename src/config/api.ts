@@ -2,7 +2,7 @@ import { Platform } from 'react-native';
 
 export const API_CONFIG = {
   baseURL: 'https://backend-production-6328.up.railway.app/api',
-  imageBaseURL: 'https://backend-production-6328.up.railway.app/',
+  imageBaseURL: 'https://backend-production-6328.up.railway.app',
   staticPath: '/public',
   timeout: 30000,
   headers: {

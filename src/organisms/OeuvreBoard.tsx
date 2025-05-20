@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { myReadingsService } from '../services/api/myreadings';
+import { userService } from '../services/api/users';
 
 type OeuvreBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -45,6 +46,9 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
   const readingCreatedRef = useRef(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [readingId, setReadingId] = useState<number | null>(null);
+  const [author, setAuthor] = useState<string>('');
+  const [authorError, setAuthorError] = useState<string | null>(null);
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Recharger les données quand on revient sur la page
   useFocusEffect(
@@ -71,7 +75,7 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
         setIsFavorite(reading.isverified);
       }
     } catch (error) {
-      console.error('Erreur lors de la vérification du statut:', error);
+      setGeneralError('Erreur lors de la vérification du statut');
     }
   };
 
@@ -81,7 +85,7 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
       await myReadingsService.changeVerified(readingId);
       setIsFavorite(!isFavorite);
     } catch (error) {
-      console.error('Erreur lors de la mise à jour du favori:', error);
+      setGeneralError('Erreur lors de la mise à jour du favori');
     }
   };
 
@@ -94,7 +98,7 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
         const data = await response.json();
         setCategories(data.data || []);
       } catch (error) {
-        console.error('Erreur lors du chargement des catégories:', error);
+        setGeneralError('Erreur lors du chargement des catégories');
       } finally {
         setLoadingCategories(false);
       }
@@ -102,6 +106,22 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
 
     fetchCategories();
   }, []);
+
+  // Charger les informations de l'auteur
+  useEffect(() => {
+    const loadAuthor = async () => {
+      if (book?.user_id) {
+        try {
+          const userData = await userService.getUserById(book.user_id);
+          setAuthor(userData.username);
+        } catch (error) {
+          setAuthorError('Erreur lors du chargement de l\'auteur');
+        }
+      }
+    };
+
+    loadAuthor();
+  }, [book]);
 
   // Initialiser les champs quand le livre est chargé
   useEffect(() => {
@@ -125,7 +145,7 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
             setIsFavorite(reading.isverified);
           }
         } catch (err) {
-          console.error('Erreur lors de la création de la lecture:', err);
+          setGeneralError('Erreur lors de la création de la lecture');
         }
       }
     };
@@ -169,13 +189,11 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
       };
 
       await updateBook(id, updateData);
-      // Réinitialiser l'aperçu temporaire après la mise à jour
       setTempCoverPreview(undefined);
       Alert.alert('Succès', 'Le livre a été mis à jour avec succès');
       setIsEditing(false);
     } catch (err) {
-      console.error('Erreur lors de la mise à jour:', err);
-      Alert.alert('Erreur', err instanceof Error ? err.message : 'Une erreur est survenue lors de la mise à jour');
+      setGeneralError('Une erreur est survenue lors de la mise à jour');
     }
   };
 
@@ -224,10 +242,10 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
     );
   }
 
-  if (error) {
+  if (generalError) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>{generalError}</Text>
       </View>
     );
   }
@@ -322,14 +340,13 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
           )}
 
           <BookCover cover={tempCoverPreview || book?.coverimage} />
+          <View style={styles.infoContainer}>
+            <Text style={styles.title}>{book?.title}</Text>
+            {author && <Text style={styles.author}>Par {author}</Text>}
+            <Text style={styles.description}>{book?.description}</Text>
+          </View>
 
           <ScrollView contentContainerStyle={styles.content}>
-            <Text style={styles.title}>{book.title}</Text>
-
-            <Text style={styles.description}>
-              {book.description || 'Aucune description disponible pour ce livre.'}
-            </Text>
-
             <Text style={styles.chapterHeader}>Chapitres</Text>
 
             {chapters.length > 0 ? (
@@ -376,6 +393,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 15,
     color: '#fff',
+  },
+  author: {
+    fontSize: 16,
+    color: '#f5f5f5',
+    textAlign: 'center',
+    marginBottom: 15,
+    fontStyle: 'italic',
   },
   description: {
     fontSize: 16,
@@ -466,5 +490,9 @@ const styles = StyleSheet.create({
     right: 20,
     zIndex: 1,
     padding: 10,
+  },
+  infoContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
 }); 

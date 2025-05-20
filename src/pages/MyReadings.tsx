@@ -8,6 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LibraryStackParamList } from '../navigation/types';
 import { Ionicons } from '@expo/vector-icons';
+import { API_CONFIG } from '../config/api';
 
 type NavigationProp = NativeStackNavigationProp<LibraryStackParamList>;
 
@@ -37,7 +38,12 @@ export const MyReadings: React.FC = () => {
                     bookService.getById(reading.book_id.toString())
                 );
                 const booksData = await Promise.all(booksPromises);
-                setBooks(booksData);
+                
+                const formattedBooks = booksData.map(book => ({
+                    ...book,
+                    coverimage: book.cover && book.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${book.cover}` : undefined
+                }));
+                setBooks(formattedBooks);
             } catch (err: any) {
                 setError(err.message || 'Une erreur est survenue');
             } finally {

@@ -20,6 +20,14 @@ const handleResponse = async (response: Response) => {
     return response.json();
 };
 
+const getAuthHeaders = async () => {
+    const token = await AsyncStorage.getItem('token');
+    return {
+        ...API_CONFIG.headers,
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+    };
+};
+
 export const userService = {
     getUserById: async (id: number): Promise<User> => {
         const token = await AsyncStorage.getItem('token');
@@ -36,7 +44,6 @@ export const userService = {
                 },
             });
 
-            // Vérifier le type de contenu de la réponse
             const contentType = response.headers.get('content-type');
             if (!contentType || !contentType.includes('application/json')) {
                 const text = await response.text();
@@ -50,5 +57,5 @@ export const userService = {
             console.error('Erreur lors de la récupération de l\'utilisateur:', error);
             throw error;
         }
-    },
+    }
 }; 
