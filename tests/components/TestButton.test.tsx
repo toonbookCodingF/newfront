@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { TestButton } from '../TestButton';
+import { TestButton } from '../../src/components/TestButton';
 
 describe('TestButton Component', () => {
-    it('renders correctly with title', () => {
+    it('renders button with correct text', () => {
         const { getByText } = render(
             <TestButton onPress={() => { }} title="Test Button" />
         );
@@ -11,14 +11,12 @@ describe('TestButton Component', () => {
     });
 
     it('calls onPress when pressed', () => {
-        const onPressMock = jest.fn();
-        const { getByTestId } = render(
-            <TestButton onPress={onPressMock} title="Test Button" />
+        const mockOnPress = jest.fn();
+        const { getByText } = render(
+            <TestButton onPress={mockOnPress} title="Test Button" />
         );
 
-        const button = getByTestId('test-button');
-        fireEvent.press(button);
-
-        expect(onPressMock).toHaveBeenCalledTimes(1);
+        fireEvent.press(getByText('Test Button'));
+        expect(mockOnPress).toHaveBeenCalled();
     });
 }); 

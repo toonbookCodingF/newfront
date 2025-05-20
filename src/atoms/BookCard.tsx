@@ -10,7 +10,7 @@ interface BookCardProps {
 }
 
 export const BookCard: React.FC<BookCardProps> = ({ book, onPress }) => {
-   
+
 
   const handleImageError = (error: any) => {
     console.error('Erreur de chargement de l\'image dans BookCard:', error.nativeEvent);
@@ -18,18 +18,20 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onPress }) => {
 
   return (
     <Pressable
+      testID="book-card"
       style={styles.card}
       onPress={() => onPress(book)}
     >
       <View style={styles.coverContainer}>
         {book.coverimage ? (
           <Image
+            testID="book-cover-image"
             source={{ uri: book.coverimage }}
             style={styles.cover}
             resizeMode="cover"
-            onError={handleImageError}          />
+            onError={handleImageError} />
         ) : (
-          <View style={styles.placeholderCover}>
+          <View testID="book-cover-placeholder" style={styles.placeholderCover}>
             <Ionicons name="book-outline" size={60} color="#666" />
           </View>
         )}
