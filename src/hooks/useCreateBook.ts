@@ -31,8 +31,6 @@ export const useCreateBook = () => {
 
   const fetchBookType = async (type: number) => {
     try {
-      console.log('Tentative de récupération des types de livres...');
-      console.log('URL:', `${API_CONFIG.baseURL}${ENDPOINTS.booktypes.getAll}`);
       
       const token = await AsyncStorage.getItem('token');
       if (!token) {
@@ -46,8 +44,6 @@ export const useCreateBook = () => {
         }
       });
 
-      console.log('Statut de la réponse:', response.status);
-      console.log('Headers de la réponse:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -67,7 +63,6 @@ export const useCreateBook = () => {
       }
 
       const json = await response.json();
-      console.log('Données reçues:', json);
 
       if (!json.data || !Array.isArray(json.data)) {
         throw new Error('Format de réponse invalide');
@@ -79,7 +74,6 @@ export const useCreateBook = () => {
       );
       
       if (found) {
-        console.log('Type de livre trouvé:', found);
         setBookType(found);
       } else {
         console.warn('Type de livre non trouvé:', bookTypeName);
@@ -109,13 +103,7 @@ export const useCreateBook = () => {
         body: formData,
       });
 
-      console.log('Réponse complète du serveur:', {
-        status: response.status,
-        headers: Object.fromEntries(response.headers.entries()),
-      });
-
       const data = await response.json();
-      console.log('Données de la réponse:', data);
 
       if (!response.ok) {
         throw new Error(data.message || 'Erreur lors de la création du livre');

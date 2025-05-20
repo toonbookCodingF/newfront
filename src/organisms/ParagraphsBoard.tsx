@@ -153,7 +153,6 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
       });
 
       if (!result.canceled) {
-        console.log('Image sélectionnée:', result.assets[0]);
         const asset = result.assets[0];
 
         // Trouver le plus grand ordre existant
@@ -166,36 +165,19 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
         formData.append('chapter_id', chapterId);
         formData.append('type', 'image');
         formData.append('order', (maxOrder + 1).toString());
-
-        // Modifier la façon dont nous ajoutons l'image
         const imageUri = asset.uri;
         const imageName = imageUri.split('/').pop() || `image_${Date.now()}.jpg`;
         const imageType = 'image/jpeg';
-
         formData.append('image', {
           uri: imageUri,
           type: imageType,
           name: imageName
         } as any);
 
-        console.log('FormData créé avec les champs:', {
-          content: '',
-          chapter_id: chapterId,
-          type: 'image',
-          order: (maxOrder + 1).toString(),
-          image: {
-            uri: imageUri,
-            type: imageType,
-            name: imageName
-          }
-        });
-
         const token = await AsyncStorage.getItem('token');
         if (!token) {
           throw new Error('Non authentifié. Veuillez vous reconnecter.');
         }
-
-        console.log('Envoi de la requête à:', `${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`);
 
         // Ajouter un délai pour éviter les requêtes simultanées
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -210,9 +192,7 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
           body: formData
         });
 
-        console.log('Statut de la réponse:', uploadResponse.status);
         const responseText = await uploadResponse.text();
-        console.log('Contenu de la réponse:', responseText);
 
         if (!uploadResponse.ok) {
           throw new Error(`Erreur ${uploadResponse.status}: ${responseText}`);

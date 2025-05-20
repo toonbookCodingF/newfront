@@ -25,28 +25,22 @@ const handleResponse = async (response: Response) => {
 export const authService = {
   login: async (credentials: LoginCredentials) => {
     try {
-      console.log('Tentative de connexion avec:', credentials);
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.auth.login}`, {
         method: 'POST',
         headers: API_CONFIG.headers,
         body: JSON.stringify(credentials),
       });
       
-      console.log('Statut de la réponse:', response.status);
       const data = await handleResponse(response);
-      console.log('Réponse de connexion complète:', JSON.stringify(data, null, 2));
       
       if (data.token) {
-        console.log('Token reçu, stockage dans AsyncStorage');
         await AsyncStorage.setItem('token', data.token);
         
         if (data.user) {
-          console.log('Données utilisateur reçues:', JSON.stringify(data.user, null, 2));
           await AsyncStorage.setItem('userData', JSON.stringify(data.user));
           
           // Vérification du stockage
           const storedUserData = await AsyncStorage.getItem('userData');
-          console.log('Données utilisateur stockées:', storedUserData);
         } else {
           console.warn('Aucune donnée utilisateur reçue dans la réponse');
         }
@@ -62,13 +56,11 @@ export const authService = {
 
   register: async (data: RegisterData) => {
     try {
-      console.log('Sending registration data:', data);
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.auth.register}`, {
         method: 'POST',
         headers: API_CONFIG.headers,
         body: JSON.stringify(data),
       });
-      console.log('Registration response status:', response.status);
       return handleResponse(response);
     } catch (error) {
       console.error('Registration error:', error);

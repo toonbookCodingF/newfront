@@ -42,9 +42,7 @@ export const chapterService = {
   async createChapter(params: CreateChapterParams) {
     try {
       const headers = await getAuthHeaders();
-      console.log('Tentative de création du chapitre avec les paramètres:', params);
-      console.log('URL:', `${API_CONFIG.baseURL}${ENDPOINTS.chapters.create}`);
-      console.log('Headers avec token:', headers);
+     
 
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.create}`, {
         method: 'POST',
@@ -56,9 +54,7 @@ export const chapterService = {
         }),
       });
 
-      console.log('Statut de la réponse:', response.status);
       const responseText = await response.text();
-      console.log('Contenu de la réponse:', responseText);
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -81,9 +77,7 @@ export const chapterService = {
   async createBookContent(params: CreateContentParams) {
     try {
       const headers = await getAuthHeaders();
-      console.log('Tentative de création du contenu avec les paramètres:', params);
-      console.log('URL:', `${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`);
-      console.log('Headers avec token:', headers);
+  
 
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`, {
         method: 'POST',
@@ -97,9 +91,7 @@ export const chapterService = {
         }),
       });
 
-      console.log('Statut de la réponse:', response.status);
       const responseText = await response.text();
-      console.log('Contenu de la réponse:', responseText);
 
       if (!response.ok) {
         if (response.status === 401) {

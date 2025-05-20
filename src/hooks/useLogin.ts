@@ -15,18 +15,14 @@ export const useLogin = () => {
 
   const handleLogin = async (email: string, password: string) => {
     try {
-      console.log('Début de la connexion');
       setError('');
       setIsLoading(true);
 
       const credentials: LoginCredentials = { email, password };
-      console.log('Envoi des identifiants:', credentials);
       
       const response = await loginApi.login(credentials);
-      console.log('Réponse de connexion:', response);
 
       if (response.data && response.data.token) {
-        console.log('Token reçu, stockage dans AsyncStorage');
         await AsyncStorage.setItem('token', response.data.token);
         
         // Stocker les données utilisateur
@@ -34,7 +30,6 @@ export const useLogin = () => {
           id: response.data.id,
           email: response.data.email
         };
-        console.log('Données utilisateur à stocker:', userData);
         await AsyncStorage.setItem('userData', JSON.stringify(userData));
       } else {
         console.warn('Aucun token reçu dans la réponse');
