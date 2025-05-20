@@ -5,7 +5,7 @@ import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, '../src/.env') });
 
 // Configuration spécifique pour les tests
-process.env.API_URL = 'http://localhost:3000/api';
+process.env.API_URL = 'https://backend-production-6328.up.railway.app/api';
 
 // Vérifier que les variables requises sont présentes
 const requiredEnvVars = ['TEST_USER_EMAIL', 'TEST_USER_PASSWORD'];

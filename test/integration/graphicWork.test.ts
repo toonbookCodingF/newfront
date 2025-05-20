@@ -10,7 +10,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // URL de l'API pour les tests
-const API_URL = process.env.API_URL || 'http://localhost:3000/api';
+const API_URL = process.env.API_URL || 'https://backend-production-6328.up.railway.app/api';
 
 describe('Graphic Work Upload API', () => {
     let authToken: string;

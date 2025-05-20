@@ -2,8 +2,8 @@ import { update } from "lodash";
 import { Platform } from 'react-native';
 
 export const API_CONFIG = {
-  baseURL: 'http://10.0.2.2:3000/api',
-  imageBaseURL: 'http://10.0.2.2:3000',
+  baseURL: 'https://backend-production-6328.up.railway.app/api',
+  imageBaseURL: 'https://backend-production-6328.up.railway.app',
   staticPath: '/public',
   timeout: 30000,
   headers: {
@@ -40,7 +40,7 @@ export const ENDPOINTS = {
     getById: (id: string) => `/books/${id}`,
     create: '/books',
     update: (id: string) => `/books/${id}`,
-    delete: (id: string) => `/books/${id}`, 
+    delete: (id: string) => `/books/${id}`,
     getbyname: '/books/search',
   },
   chapters: {
