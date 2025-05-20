@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert, TextInput, FlatList } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
@@ -9,8 +9,6 @@ import { useParagraphs } from '../hooks/useParagraphs';
 import { useUpdateChapter } from '../hooks/useUpdateChapter';
 import { useDeleteContent } from '../hooks/useDeleteContent';
 import { useCreateChapter } from '../hooks/useCreateChapter';
-import { useUpdateParagraphOrder } from '../hooks/useUpdateParagraphOrder';
-import DraggableFlatList, { RenderItemParams } from 'react-native-draggable-flatlist';
 import * as ImagePicker from 'expo-image-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
@@ -48,7 +46,6 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
   const { updateChapter, updateContent, isLoading: isUpdating } = useUpdateChapter();
   const { deleteContent, isLoading: isDeleting } = useDeleteContent();
   const { createBookContent } = useCreateChapter();
-  const { updateOrder } = useUpdateParagraphOrder();
   const [isEditing, setIsEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState(chapterTitle);
   const [editingParagraphId, setEditingParagraphId] = useState<number | null>(null);
@@ -344,31 +341,9 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
     }
   };
 
-  const handleDragEnd = async ({ data }: { data: any[] }) => {
-    try {
-      // Mettre à jour l'ordre de chaque paragraphe
-      const updatePromises = data.map((item, index) => 
-        updateOrder(item.id, index + 1)
-      );
-
-      await Promise.all(updatePromises);
-      refresh(); // Rafraîchir la liste
-    } catch (err) {
-      console.error('Erreur lors de la mise à jour des ordres:', err);
-      Alert.alert('Erreur', 'Une erreur est survenue lors de la réorganisation des paragraphes');
-    }
-  };
-
-  const renderItem = ({ item, drag, isActive }: RenderItemParams<any>) => {
+  const renderItem = ({ item }: { item: any }) => {
     return (
-      <TouchableOpacity
-        onLongPress={drag}
-        disabled={isActive}
-        style={[
-          styles.paragraphContainer,
-          isActive && styles.dragging
-        ]}
-      >
+      <View style={styles.paragraphContainer}>
         <ParagraphCard
           content={item.content}
           type={item.type}
@@ -379,7 +354,7 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
             }
           }}
         />
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -439,14 +414,14 @@ export const ParagraphsBoard: React.FC<ParagraphsBoardProps> = ({
         )}
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <ScrollView style={styles.scrollContainer}>
         {paragraphs.length > 0 ? (
           <>
-            <DraggableFlatList
+            <FlatList
               data={paragraphs}
               renderItem={renderItem}
               keyExtractor={(item) => item.id.toString()}
-              onDragEnd={handleDragEnd}
+              scrollEnabled={false}
               contentContainerStyle={styles.paragraphsList}
             />
             {source === 'myBooks' && (
@@ -548,10 +523,6 @@ const styles = StyleSheet.create({
   },
   paragraphContainer: {
     marginVertical: 8,
-  },
-  dragging: {
-    opacity: 0.5,
-    transform: [{ scale: 1.05 }],
   },
   paragraphsList: {
     paddingBottom: 20,
