@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, StyleSheet, Pressable, Image, Text, ImageLoadEventData } from 'react-native';
+import React, { useState } from 'react';
+import { View, StyleSheet, Pressable, Image, Text, ImageSourcePropType } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Book } from '../services/api/books';
 import { API_CONFIG } from '../config/api';
@@ -10,26 +10,35 @@ interface BookCardProps {
 }
 
 export const BookCard: React.FC<BookCardProps> = ({ book, onPress }) => {
-   
+  const [imageError, setImageError] = useState(false);
 
   const handleImageError = (error: any) => {
     console.error('Erreur de chargement de l\'image dans BookCard:', error.nativeEvent);
+    setImageError(true);
+  };
+
+  const getImageSource = (): ImageSourcePropType | undefined => {
+    if (!book.coverimage) return undefined;
+    return { uri: book.coverimage };
   };
 
   return (
     <Pressable
+      testID="book-card"
       style={styles.card}
       onPress={() => onPress(book)}
     >
       <View style={styles.coverContainer}>
-        {book.coverimage ? (
+        {book.coverimage && !imageError ? (
           <Image
-            source={{ uri: book.coverimage }}
+            testID="book-cover-image"
+            source={getImageSource()}
             style={styles.cover}
             resizeMode="cover"
-            onError={handleImageError}          />
+            onError={handleImageError}
+          />
         ) : (
-          <View style={styles.placeholderCover}>
+          <View testID="book-cover-placeholder" style={styles.placeholderCover}>
             <Ionicons name="book-outline" size={60} color="#666" />
           </View>
         )}

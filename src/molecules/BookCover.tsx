@@ -1,7 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { API_CONFIG } from '../config/api';
 
 interface BookCoverProps {
   cover?: string;
@@ -11,11 +10,17 @@ interface BookCoverProps {
 export const BookCover: React.FC<BookCoverProps> = ({ cover, style }) => {
   return (
     <View style={styles.container}>
-      <Image
-        source={cover ? { uri: cover } : require('../../assets/default-cover.png')}
-        style={[styles.cover, style]}
-        resizeMode="cover"
-      />
+      {cover ? (
+        <Image
+          source={{ uri: cover }}
+          style={[styles.cover, style]}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={[styles.placeholderCover, style]}>
+          <Ionicons name="book-outline" size={80} color="#666" />
+        </View>
+      )}
     </View>
   );
 };
