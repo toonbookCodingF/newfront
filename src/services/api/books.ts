@@ -72,56 +72,30 @@ export const bookService = {
     },
 
     getById: async (id: string): Promise<Book> => {
+        const headers = await getAuthHeaders();
+        const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getById(id)}`, {
+            headers
+        });
+        
+        const responseText = await response.text();
+        
+        if (!response.ok) {
+            throw new Error(`Erreur ${response.status}: ${responseText}`);
+        }
+
         try {
-            const headers = await getAuthHeaders();
-
-            const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getById(id)}`, {
-                method: 'GET',
-                headers,
-            });
-
-            const responseText = await response.text();
-
-            if (!response.ok) {
-                throw new Error(`Erreur ${response.status}: ${responseText}`);
-            }
-
-            const data = JSON.parse(responseText);
+            const result = JSON.parse(responseText);
+            const book = result.data || result;
             
-            // Vérifier si la réponse est un tableau ou un objet
-            let bookData;
-            if (Array.isArray(data)) {
-                if (data.length === 0) {
-                    throw new Error('Aucun livre trouvé');
-                }
-                bookData = data[0];
-            } else if (data.data) {
-                bookData = data.data;
-            } else if (typeof data === 'object') {
-                bookData = data;
-            } else {
-                throw new Error('Format de réponse invalide');
-            }
-
-            // Vérifier les propriétés requises
-            if (!bookData.id) {
-                throw new Error('Format de réponse invalide: ID manquant');
+            if (!book) {
+                throw new Error('Livre non trouvé');
             }
 
             return {
-                id: bookData.id,
-                title: bookData.title || '',
-                description: bookData.description || '',
-                coverimage: bookData.cover || undefined,
-                createdAt: bookData.createdat || new Date().toISOString(),
-                updatedAt: bookData.updatedat || new Date().toISOString(),
-                category_id: bookData.category_id || 1,
-                booktype_id: bookData.booktype_id || null,
-                user_id: bookData.user_id || 0,
-                status: bookData.status || 'draft'
+                ...book,
+                coverimage: book.cover && book.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${book.cover}` : undefined
             };
         } catch (error) {
-            console.error('Erreur détaillée lors de la récupération du livre:', error);
             throw error;
         }
     },
@@ -193,18 +167,8 @@ export const bookService = {
 
         try {
             const responseData = JSON.parse(responseText);
-            return responseData.data.map((book: any) => ({
-                id: book.id,
-                title: book.title,
-                description: book.description,
-                coverimage: book.cover,
-                createdAt: book.createdat,
-                updatedAt: book.createdat,
-                category_id: book.category_id || 1,
-                booktype_id: book.booktype_id,
-                user_id: book.user_id,
-                status: book.status
-            }));
+            const books = responseData.data || responseData;
+            return books;
         } catch (error) {
             console.error('Erreur de parsing JSON:', error);
             throw new Error('Erreur de parsing de la réponse');

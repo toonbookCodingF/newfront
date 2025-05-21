@@ -5,14 +5,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 interface Chapter {
   id: number;
   title: string;
-  order?: number;
+  content: string;
+  order: number;
+  book_id: number;
 }
 
 interface Book {
   id: number;
   title: string;
   description: string;
-  coverimage: string;
+  coverimage?: string;
   status: string;
   category_id?: number;
   booktype_id: number | null;
@@ -27,49 +29,62 @@ export const useOeuvre = (id: string) => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
-      try {
-        setLoading(true);
-        setError(null);
+    try {
+      setLoading(true);
+      setError(null);
 
-        const token = await AsyncStorage.getItem('token');
-        const headers = {
+      const token = await AsyncStorage.getItem('token');
+      const headers = {
         ...API_CONFIG.headers,
         ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        };
+      };
 
       // Récupérer le livre
       const bookResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getById(id)}`, {
-          headers
-        });
+        headers
+      });
 
-        if (!bookResponse.ok) {
+      if (!bookResponse.ok) {
         throw new Error(`Erreur ${bookResponse.status}: Impossible de récupérer le livre`);
       }
 
       const bookData = await bookResponse.json();
-      setBook(bookData.data || bookData);
+      const rawBook = bookData.data || bookData;
+      
+      const formattedBook = {
+        id: rawBook.id,
+        title: rawBook.title,
+        description: rawBook.description,
+        coverimage: rawBook.cover && rawBook.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${rawBook.cover}` : undefined,
+        status: rawBook.status,
+        category_id: rawBook.category_id,
+        booktype_id: rawBook.booktype_id,
+        user_id: rawBook.user_id,
+        cover: rawBook.cover
+      };
+      
+      setBook(formattedBook);
 
       // Récupérer les chapitres
       const chaptersResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.getByBookId(id)}`, {
-          headers
-        });
+        headers
+      });
 
-        if (!chaptersResponse.ok) {
+      if (!chaptersResponse.ok) {
         throw new Error(`Erreur ${chaptersResponse.status}: Impossible de récupérer les chapitres`);
-        }
+      }
 
       const chaptersData = await chaptersResponse.json();
       setChapters(chaptersData.data || chaptersData);
-      } catch (err) {
-      console.error('Erreur lors du chargement de l\'œuvre:', err);
-        setError(err instanceof Error ? err.message : 'Une erreur est survenue');
-      } finally {
-        setLoading(false);
-      }
+    } catch (err: any) {
+      setError(err.message || 'Une erreur est survenue');
+    } finally {
+      setLoading(false);
+    }
   }, [id]);
 
   useEffect(() => {
-      fetchData();
+    fetchData();
   }, [fetchData]);
 
   return {

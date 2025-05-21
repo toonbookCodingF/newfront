@@ -16,6 +16,8 @@ import ParagraphsPage from '../pages/ParagraphsPage';
 import CreateChapterPage from '../pages/CreateChapterPage';
 import UploadeOeuvreGraph from '../pages/UploadeOeuvreGraph';
 import MyBooks from '../pages/MyBooks';
+import { MyReadings } from '../pages/MyReadings';
+import { MyFavorites } from '../pages/MyFavorites';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
@@ -29,6 +31,8 @@ const LibraryStackNavigator = () => {
       <LibraryStack.Screen name="OeuvrePage" component={OeuvrePage} />
       <LibraryStack.Screen name="Paragraphs" component={ParagraphsPage} />
       <LibraryStack.Screen name="MyBooks" component={MyBooks} />
+      <LibraryStack.Screen name="MyReadings" component={MyReadings} />
+      <LibraryStack.Screen name="MyFavorites" component={MyFavorites} />
       <LibraryStack.Screen name="CreateChapterPage" component={CreateChapterPage} />
       <LibraryStack.Screen name="UploadeOeuvreGraph" component={UploadeOeuvreGraph} />
     </LibraryStack.Navigator>

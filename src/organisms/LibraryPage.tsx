@@ -3,9 +3,9 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LibraryCard } from '../atoms/LibraryCard';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/types';
+import { LibraryStackParamList } from '../navigation/types';
 
-type LibraryPageNavigationProp = NativeStackNavigationProp<RootStackParamList>;
+type LibraryPageNavigationProp = NativeStackNavigationProp<LibraryStackParamList>;
 
 export const LibraryPage: React.FC = () => {
   const navigation = useNavigation<LibraryPageNavigationProp>();
@@ -23,14 +23,15 @@ export const LibraryPage: React.FC = () => {
 
       <LibraryCard
         title="Mes lectures"
+        description="Retrouver vos lectures en cours"
         icon="📚"
-        onPress={() => navigation.navigate('TestRedirection')}
+        onPress={() => navigation.navigate('MyReadings')}
       />
 
       <LibraryCard
         title="Mes favoris"
         icon="⭐"
-        onPress={() => navigation.navigate('TestRedirection')}
+        onPress={() => navigation.navigate('MyFavorites')}
       />
     </View>
   );

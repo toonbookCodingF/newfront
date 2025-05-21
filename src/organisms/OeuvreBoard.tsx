@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,11 +7,15 @@ import { BookCover } from '../molecules/BookCover';
 import { ChapterButton } from '../atoms/ChapterButton';
 import { useOeuvre } from '../hooks/useOeuvre';
 import { useUpdateBook } from '../hooks/useUpdateBook';
+import { useMyReading } from '../hooks/useMyReading';
 import { ImageUploader } from '../molecules/ImageUploader';
 import { FormInput } from '../atoms/FormInput';
 import { CategoryPicker } from '../atoms/CategoryPicker';
 import { Ionicons } from '@expo/vector-icons';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { myReadingsService } from '../services/api/myreadings';
+import { userService } from '../services/api/users';
 
 type OeuvreBoardNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -29,6 +33,7 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
   const navigation = useNavigation<OeuvreBoardNavigationProp>();
   const { book, chapters, loading, error, refetch } = useOeuvre(id);
   const { updateBook, isLoading: isUpdating } = useUpdateBook();
+  const { createMyReading } = useMyReading();
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -38,13 +43,51 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
   const [uploading, setUploading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const readingCreatedRef = useRef(false);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [readingId, setReadingId] = useState<number | null>(null);
+  const [author, setAuthor] = useState<string>('');
+  const [authorError, setAuthorError] = useState<string | null>(null);
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   // Recharger les données quand on revient sur la page
   useFocusEffect(
     React.useCallback(() => {
       refetch();
+      if (!fromMyBooks) {
+        checkReadingStatus();
+      }
     }, [refetch])
   );
+
+  const checkReadingStatus = async () => {
+    try {
+      const token = await AsyncStorage.getItem('token');
+      if (!token) return;
+
+      const decodedToken = JSON.parse(atob(token.split('.')[1]));
+      const userId = decodedToken.id;
+
+      const readings = await myReadingsService.getByUser(userId);
+      const reading = readings.find(r => r.book_id === parseInt(id));
+      if (reading) {
+        setReadingId(reading.id);
+        setIsFavorite(reading.isverified);
+      }
+    } catch (error) {
+      setGeneralError('Erreur lors de la vérification du statut');
+    }
+  };
+
+  const toggleFavorite = async () => {
+    if (!readingId) return;
+    try {
+      await myReadingsService.changeVerified(readingId);
+      setIsFavorite(!isFavorite);
+    } catch (error) {
+      setGeneralError('Erreur lors de la mise à jour du favori');
+    }
+  };
 
   // Charger les catégories
   useEffect(() => {
@@ -55,7 +98,7 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
         const data = await response.json();
         setCategories(data.data || []);
       } catch (error) {
-        console.error('Erreur lors du chargement des catégories:', error);
+        setGeneralError('Erreur lors du chargement des catégories');
       } finally {
         setLoadingCategories(false);
       }
@@ -64,6 +107,22 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
     fetchCategories();
   }, []);
 
+  // Charger les informations de l'auteur
+  useEffect(() => {
+    const loadAuthor = async () => {
+      if (book?.user_id) {
+        try {
+          const userData = await userService.getUserById(book.user_id);
+          setAuthor(userData.username);
+        } catch (error) {
+          setAuthorError('Erreur lors du chargement de l\'auteur');
+        }
+      }
+    };
+
+    loadAuthor();
+  }, [book]);
+
   // Initialiser les champs quand le livre est chargé
   useEffect(() => {
     if (book) {
@@ -71,6 +130,36 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
       setDescription(book.description);
       setCategory(book.category_id?.toString() || '');
       setTempCoverPreview(book.coverimage);
+    }
+  }, [book]);
+
+  // Créer une lecture si le livre est ouvert depuis une page autre que MyBooks
+  useEffect(() => {
+    let isMounted = true;
+    const createReading = async () => {
+      if (!fromMyBooks && book && isMounted) {
+        try {
+          const reading = await createMyReading(parseInt(id));
+          if (reading) {
+            setReadingId(reading.id);
+            setIsFavorite(reading.isverified);
+          }
+        } catch (err) {
+          setGeneralError('Erreur lors de la création de la lecture');
+        }
+      }
+    };
+
+    createReading();
+    return () => {
+      isMounted = false;
+    };
+  }, [fromMyBooks, book]);
+
+  // Vérifier le statut de la lecture
+  useEffect(() => {
+    if (!fromMyBooks && book) {
+      checkReadingStatus();
     }
   }, [book]);
 
@@ -100,13 +189,11 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
       };
 
       await updateBook(id, updateData);
-      // Réinitialiser l'aperçu temporaire après la mise à jour
       setTempCoverPreview(undefined);
       Alert.alert('Succès', 'Le livre a été mis à jour avec succès');
       setIsEditing(false);
     } catch (err) {
-      console.error('Erreur lors de la mise à jour:', err);
-      Alert.alert('Erreur', err instanceof Error ? err.message : 'Une erreur est survenue lors de la mise à jour');
+      setGeneralError('Une erreur est survenue lors de la mise à jour');
     }
   };
 
@@ -155,10 +242,10 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
     );
   }
 
-  if (error) {
+  if (generalError) {
     return (
       <View style={styles.container}>
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>{generalError}</Text>
       </View>
     );
   }
@@ -173,6 +260,18 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
 
   return (
     <View style={styles.container}>
+      {!fromMyBooks && readingId && (
+        <TouchableOpacity
+          style={styles.favoriteButton}
+          onPress={toggleFavorite}
+        >
+          <Ionicons 
+            name={isFavorite ? "heart" : "heart-outline"} 
+            size={24} 
+            color={isFavorite ? "#ff4444" : "#fff"} 
+          />
+        </TouchableOpacity>
+      )}
       {isEditing ? (
         <ScrollView contentContainerStyle={styles.content}>
           <TouchableOpacity
@@ -241,14 +340,13 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
           )}
 
           <BookCover cover={tempCoverPreview || book?.coverimage} />
+          <View style={styles.infoContainer}>
+            <Text style={styles.title}>{book?.title}</Text>
+            {author && <Text style={styles.author}>Par {author}</Text>}
+            <Text style={styles.description}>{book?.description}</Text>
+          </View>
 
           <ScrollView contentContainerStyle={styles.content}>
-            <Text style={styles.title}>{book.title}</Text>
-
-            <Text style={styles.description}>
-              {book.description || 'Aucune description disponible pour ce livre.'}
-            </Text>
-
             <Text style={styles.chapterHeader}>Chapitres</Text>
 
             {chapters.length > 0 ? (
@@ -295,6 +393,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 15,
     color: '#fff',
+  },
+  author: {
+    fontSize: 16,
+    color: '#f5f5f5',
+    textAlign: 'center',
+    marginBottom: 15,
+    fontStyle: 'italic',
   },
   description: {
     fontSize: 16,
@@ -378,5 +483,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     marginLeft: 8,
+  },
+  favoriteButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 1,
+    padding: 10,
+  },
+  infoContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
 }); 

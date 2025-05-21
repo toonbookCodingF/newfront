@@ -1,9 +1,8 @@
-import { update } from "lodash";
 import { Platform } from 'react-native';
 
 export const API_CONFIG = {
-  baseURL: 'http://10.0.2.2:3000/api',
-  imageBaseURL: 'http://10.0.2.2:3000',
+  baseURL: 'https://backend-production-6328.up.railway.app/api',
+  imageBaseURL: 'https://backend-production-6328.up.railway.app',
   staticPath: '/public',
   timeout: 30000,
   headers: {
@@ -68,5 +67,14 @@ export const ENDPOINTS = {
     update: (id: string) => `/comments/${id}`,
     getOne: (id: string) => `/comments/${id}`,
     getAllCommentByBookContent: (bookContentId: string) => `/comments?bookContent_id=${bookContentId}`,
+  },
+  myreadings: {
+    getAll: '/myreadings',
+    create: '/myreadings',
+    update: (id: string) => `/myreadings/${id}`,
+    delete: (id: string) => `/myreadings/${id}`,
+    getbyuser: (userId: string) => `/myreadings/user/${userId}`,
+    getbyuserverified: (userId: string) => `/myreadings/user/${userId}/verified`,
+    changeverified: (id: string) => `/myreadings/${id}/toggle-verify`,
   },
 }; 
