@@ -12,7 +12,6 @@ export const BookCover: React.FC<BookCoverProps> = ({ cover, style }) => {
   return (
     <View style={styles.container}>
       <Image
-        source={cover ? { uri: cover } : require('../../assets/default-cover.png')}
         style={[styles.cover, style]}
         resizeMode="cover"
       />
