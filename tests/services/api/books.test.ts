@@ -32,7 +32,7 @@ describe('Book Service', () => {
         // Mock successful fetch response
         (global.fetch as jest.Mock).mockImplementationOnce(() => Promise.resolve({
             ok: true,
-            json: () => Promise.resolve(mockBook)
+            text: () => Promise.resolve(JSON.stringify({ data: mockBook }))
         }));
 
         const book = await bookService.getById('test-book-id');
@@ -47,7 +47,7 @@ describe('Book Service', () => {
         (global.fetch as jest.Mock).mockImplementationOnce(() => Promise.resolve({
             ok: false,
             status: 404,
-            json: () => Promise.resolve({ message: 'Book not found' })
+            text: () => Promise.resolve(JSON.stringify({ message: 'Book not found' }))
         }));
 
         await expect(bookService.getById('non-existent-id')).rejects.toThrow();

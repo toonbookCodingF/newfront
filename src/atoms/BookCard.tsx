@@ -31,6 +31,7 @@ export const BookCard: React.FC<BookCardProps> = ({ book, onPress }) => {
       <View style={styles.coverContainer}>
         {book.coverimage && !imageError ? (
           <Image
+            testID="book-cover-image"
             source={getImageSource()}
             style={styles.cover}
             resizeMode="cover"

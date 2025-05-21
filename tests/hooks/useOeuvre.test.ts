@@ -12,8 +12,6 @@ describe('useOeuvre Hook', () => {
         description: 'Test Description',
         cover: 'test-cover.jpg',
         coverimage: 'https://backend-production-6328.up.railway.app/publictest-cover.jpg',
-        createdAt: '2024-01-01',
-        updatedAt: '2024-01-01',
         category_id: 1,
         booktype_id: 1,
         user_id: 1,
@@ -44,11 +42,11 @@ describe('useOeuvre Hook', () => {
         (global.fetch as jest.Mock)
             .mockImplementationOnce(() => Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve(mockBook)
+                json: () => Promise.resolve({ data: mockBook })
             }))
             .mockImplementationOnce(() => Promise.resolve({
                 ok: true,
-                json: () => Promise.resolve(mockChapters)
+                json: () => Promise.resolve({ data: mockChapters })
             }));
 
         const { result } = renderHook(() => useOeuvre(mockBookId));
@@ -74,7 +72,7 @@ describe('useOeuvre Hook', () => {
         // Mock failed fetch
         (global.fetch as jest.Mock).mockImplementationOnce(() => Promise.resolve({
             ok: false,
-            statusText: 'Not Found',
+            status: 404,
             json: () => Promise.resolve({ message: 'Book not found' })
         }));
 
