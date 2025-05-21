@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Alert, TouchableOpacity, Text } from 'react-native';
+import { View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChapterForm } from '../atoms/ChapterForm';
@@ -11,9 +11,10 @@ type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 interface CreateChapterBoardProps {
   bookId: string;
+  nextOrder?: number;
 }
 
-export const CreateChapterBoard: React.FC<CreateChapterBoardProps> = ({ bookId }) => {
+export const CreateChapterBoard: React.FC<CreateChapterBoardProps> = ({ bookId, nextOrder }) => {
   const navigation = useNavigation<NavigationProp>();
   const { createChapter, createBookContent, isLoading, error } = useCreateChapter();
   const [chapterTitle, setChapterTitle] = useState('');
@@ -31,12 +32,18 @@ export const CreateChapterBoard: React.FC<CreateChapterBoardProps> = ({ bookId }
         throw new Error('ID du livre invalide');
       }
 
-      // Créer le chapitre
-      const chapter = await createChapter(numericBookId, chapterTitle);
+      // Créer le chapitre avec l'ordre spécifié
+      const chapter = await createChapter(numericBookId, chapterTitle, nextOrder);
 
       // Créer le contenu si du texte a été saisi
       if (content.trim()) {
-        await createBookContent(chapter.id, content);
+        // Diviser le contenu en paragraphes en fonction des retours à la ligne
+        const paragraphs = content.split('\n').filter(p => p.trim());
+        
+        // Créer un bookContent pour chaque paragraphe
+        for (let i = 0; i < paragraphs.length; i++) {
+          await createBookContent(chapter.id, paragraphs[i].trim(), i + 1);
+        }
       }
 
       Alert.alert(

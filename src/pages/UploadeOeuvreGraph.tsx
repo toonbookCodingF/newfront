@@ -34,7 +34,7 @@ interface ImageAsset {
 export default function UploadeOeuvreGraph() {
     const route = useRoute();
     const navigation = useNavigation<UploadeOeuvreGraphNavigationProp>();
-    const { bookId } = route.params as { bookId: string };
+    const { bookId, nextOrder } = route.params as { bookId: string; nextOrder?: number };
     const [chapterTitle, setChapterTitle] = useState('');
     const [images, setImages] = useState<ImageAsset[]>([]);
     const [uploading, setUploading] = useState(false);
@@ -105,15 +105,13 @@ export default function UploadeOeuvreGraph() {
                 title: chapterTitle,
                 book_id: parseInt(bookId),
                 status: 'published',
-                order: 1,
+                order: nextOrder || 1,
             };
-
 
             const chapterResponse = await apiFetch<ChapterResponse>('/chapters/create', {
                 method: 'POST',
                 body: JSON.stringify(chapterData),
             });
-
 
             if (!chapterResponse.data?.data?.id) {
                 throw new Error('Erreur lors de la création du chapitre: Structure de réponse invalide');

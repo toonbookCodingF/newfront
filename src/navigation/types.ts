@@ -4,8 +4,8 @@ export type RootStackParamList = {
   MenuCreation: undefined;
   TestRedirection: undefined;
   Create: { bookId: string };
-  UploadeOeuvreGraph: { bookId: string };
-  CreateChapterPage: { bookId: string };
+  UploadeOeuvreGraph: { bookId: string; nextOrder?: number };
+  CreateChapterPage: { bookId: string; nextOrder?: number };
   OeuvrePage: {
     id: string;
     fromMyBooks?: boolean;
@@ -57,8 +57,10 @@ export type LibraryStackParamList = {
   MyBooks: undefined;
   CreateChapterPage: {
     bookId: string;
+    nextOrder?: number;
   };
   UploadeOeuvreGraph: {
     bookId: string;
+    nextOrder?: number;
   };
 }; 

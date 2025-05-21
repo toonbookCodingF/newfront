@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableWithoutFeedback, Keyboard, TouchableOpacity } from 'react-native';
 
 interface ChapterFormProps {
   chapterTitle: string;
@@ -20,6 +20,12 @@ export const ChapterForm: React.FC<ChapterFormProps> = ({
   loading = false,
   error = null,
 }) => {
+  const handleContentChange = (text: string) => {
+    // On stocke le texte avec les marqueurs mais on affiche le texte original
+    const displayText = text.replace(/\|\|\|/g, '');
+    onContentChange(text);
+  };
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={styles.container}>
@@ -38,19 +44,22 @@ export const ChapterForm: React.FC<ChapterFormProps> = ({
           placeholder="Écris ton texte ici..."
           placeholderTextColor="#aaa"
           multiline
-          value={content}
-          onChangeText={onContentChange}
+          value={content.replace(/\|\|\|/g, '')}
+          onChangeText={handleContentChange}
           textAlignVertical="top"
         />
 
-        {error && <Text style={styles.errorText}>{error}</Text>}
+        <TouchableOpacity
+          style={[styles.button, styles.saveButton]}
+          onPress={onSave}
+          disabled={loading}
+        >
+          <Text style={styles.buttonText}>
+            {loading ? 'Enregistrement...' : 'Enregistrer le chapitre'}
+          </Text>
+        </TouchableOpacity>
 
-        <TextInput
-          style={[styles.textInput, styles.saveButton]}
-          value={loading ? 'Enregistrement...' : 'Enregistrer le chapitre'}
-          onPressIn={onSave}
-          editable={!loading}
-        />
+        {error && <Text style={styles.errorText}>{error}</Text>}
       </View>
     </TouchableWithoutFeedback>
   );
@@ -81,11 +90,19 @@ const styles = StyleSheet.create({
     marginTop: 10,
     fontSize: 14,
   },
+  button: {
+    backgroundColor: '#FF69B4',
+    borderRadius: 8,
+    padding: 15,
+    marginTop: 20,
+    alignItems: 'center',
+  },
   saveButton: {
     backgroundColor: '#FF69B4',
-    color: '#fff',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    marginTop: 20,
   },
-}); 
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+});
