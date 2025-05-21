@@ -1,17 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { API_CONFIG, ENDPOINTS } from '../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Chapter {
   id: number;
   title: string;
+  content: string;
+  order: number;
+  book_id: number;
 }
 
 interface Book {
   id: number;
   title: string;
   description: string;
-  coverimage: string;
+  coverimage?: string;
   status: string;
   category_id?: number;
   booktype_id: number | null;
@@ -19,76 +22,76 @@ interface Book {
   cover?: string;
 }
 
-export const useOeuvre = (bookId: string) => {
+export const useOeuvre = (id: string) => {
   const [book, setBook] = useState<Book | null>(null);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const fetchData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
+      const token = await AsyncStorage.getItem('token');
+      const headers = {
+        ...API_CONFIG.headers,
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+      };
 
-        const token = await AsyncStorage.getItem('token');
-        if (!token) {
-          throw new Error('Non authentifié. Veuillez vous reconnecter.');
-        }
+      // Récupérer le livre
+      const bookResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getById(id)}`, {
+        headers
+      });
 
-        const headers = {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        };
-
-        // Fetch book details
-        const bookResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getById(bookId)}`, {
-          headers
-        });
-
-        const bookData = await bookResponse.json();
-
-        if (!bookResponse.ok) {
-          throw new Error(`[FETCH] Erreur lors de la récupération du livre: ${bookData.message || bookResponse.statusText}`);
-        }
-
-        // Format the book data to match the Book interface
-        const formattedBook = {
-          ...bookData,
-          coverimage: bookData.cover && bookData.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${bookData.cover}` : undefined
-        };
-
-        setBook(formattedBook);
-
-        // Fetch chapters
-
-        const chaptersResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.getByBookId(bookId)}`, {
-          headers
-        });
-
-        const chaptersData = await chaptersResponse.json();
-
-        if (!chaptersResponse.ok) {
-          throw new Error(`[FETCH] Erreur lors de la récupération des chapitres: ${chaptersData.message || chaptersResponse.statusText}`);
-        }
-
-        setChapters(Array.isArray(chaptersData) ? chaptersData : chaptersData.data || []);
-      } catch (err) {
-        console.error('Erreur dans useOeuvre:', err);
-        setError(err instanceof Error ? err.message : 'Une erreur est survenue');
-      } finally {
-        setLoading(false);
+      if (!bookResponse.ok) {
+        throw new Error(`Erreur ${bookResponse.status}: Impossible de récupérer le livre`);
       }
-    };
 
-    if (bookId) {
-      fetchData();
-    } else {
-      setError('ID du livre non fourni');
+      const bookData = await bookResponse.json();
+      const rawBook = bookData.data || bookData;
+      
+      const formattedBook = {
+        id: rawBook.id,
+        title: rawBook.title,
+        description: rawBook.description,
+        coverimage: rawBook.cover && rawBook.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${rawBook.cover}` : undefined,
+        status: rawBook.status,
+        category_id: rawBook.category_id,
+        booktype_id: rawBook.booktype_id,
+        user_id: rawBook.user_id,
+        cover: rawBook.cover
+      };
+      
+      setBook(formattedBook);
+
+      // Récupérer les chapitres
+      const chaptersResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.getByBookId(id)}`, {
+        headers
+      });
+
+      if (!chaptersResponse.ok) {
+        throw new Error(`Erreur ${chaptersResponse.status}: Impossible de récupérer les chapitres`);
+      }
+
+      const chaptersData = await chaptersResponse.json();
+      setChapters(chaptersData.data || chaptersData);
+    } catch (err: any) {
+      setError(err.message || 'Une erreur est survenue');
+    } finally {
       setLoading(false);
     }
-  }, [bookId]);
+  }, [id]);
 
-  return { book, chapters, loading, error };
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  return {
+    book,
+    chapters,
+    loading,
+    error,
+    refetch: fetchData
+  };
 }; 

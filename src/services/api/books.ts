@@ -74,10 +74,30 @@ export const bookService = {
     getById: async (id: string): Promise<Book> => {
         const headers = await getAuthHeaders();
         const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.books.getById(id)}`, {
-            method: 'GET',
-            headers,
+            headers
         });
-        return handleResponse(response);
+        
+        const responseText = await response.text();
+        
+        if (!response.ok) {
+            throw new Error(`Erreur ${response.status}: ${responseText}`);
+        }
+
+        try {
+            const result = JSON.parse(responseText);
+            const book = result.data || result;
+            
+            if (!book) {
+                throw new Error('Livre non trouvé');
+            }
+
+            return {
+                ...book,
+                coverimage: book.cover && book.cover !== '' ? `${API_CONFIG.imageBaseURL}${API_CONFIG.staticPath}${book.cover}` : undefined
+            };
+        } catch (error) {
+            throw error;
+        }
     },
 
     create: async (data: CreateBookData): Promise<Book> => {
@@ -147,18 +167,8 @@ export const bookService = {
 
         try {
             const responseData = JSON.parse(responseText);
-            return responseData.data.map((book: any) => ({
-                id: book.id,
-                title: book.title,
-                description: book.description,
-                coverimage: book.cover,
-                createdAt: book.createdat,
-                updatedAt: book.createdat,
-                category_id: book.category_id || 1,
-                booktype_id: book.booktype_id,
-                user_id: book.user_id,
-                status: book.status
-            }));
+            const books = responseData.data || responseData;
+            return books;
         } catch (error) {
             console.error('Erreur de parsing JSON:', error);
             throw new Error('Erreur de parsing de la réponse');

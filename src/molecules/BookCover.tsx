@@ -5,31 +5,17 @@ import { API_CONFIG } from '../config/api';
 
 interface BookCoverProps {
   cover?: string;
+  style?: any;
 }
 
-export const BookCover: React.FC<BookCoverProps> = ({ cover }) => {
-
-  const handleImageError = (error: any) => {
-    console.error('Erreur de chargement de l\'image dans BookCover:', error.nativeEvent);
-    console.error('URL de l\'image qui a échoué:', cover);
-    console.error('Détails de l\'erreur:', JSON.stringify(error.nativeEvent, null, 2));
-  };
-
+export const BookCover: React.FC<BookCoverProps> = ({ cover, style }) => {
   return (
     <View style={styles.container}>
-      {cover && cover !== '' ? (
-        <Image
-          source={{ uri: cover }}
-          style={styles.cover}
-          resizeMode="cover"
-          onError={handleImageError}
-      
-        />
-      ) : (
-        <View style={styles.placeholderCover}>
-          <Ionicons name="book-outline" size={80} color="#666" />
-        </View>
-      )}
+      <Image
+        source={cover ? { uri: cover } : require('../../assets/default-cover.png')}
+        style={[styles.cover, style]}
+        resizeMode="cover"
+      />
     </View>
   );
 };
@@ -39,6 +25,8 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 300,
     backgroundColor: '#f5f5f5',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   cover: {
     width: '100%',

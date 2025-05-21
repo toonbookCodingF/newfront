@@ -43,15 +43,17 @@ export const chapterService = {
     try {
       const headers = await getAuthHeaders();
      
+      const order = params.order ?? 1;
+      const requestBody = {
+        title: params.title,
+        book_id: params.book_id,
+        order,
+      };
 
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.create}`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          ...params,
-          status: params.status || "published",
-          order: params.order ?? 1,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       const responseText = await response.text();
@@ -64,12 +66,9 @@ export const chapterService = {
       }
 
       const result = JSON.parse(responseText);
-      const chapterId = result.data?.id;
-      if (!chapterId) throw new Error("ID du chapitre introuvable dans la réponse.");
-
-      return { id: chapterId, title: params.title, bookId: params.book_id };
+      return result;
     } catch (error: any) {
-      console.error('Erreur lors de la création du chapitre:', error);
+      console.error('Service - Erreur complète:', error);
       throw new Error(error.message || "Une erreur est survenue lors de la création du chapitre");
     }
   },
@@ -77,7 +76,6 @@ export const chapterService = {
   async createBookContent(params: CreateContentParams) {
     try {
       const headers = await getAuthHeaders();
-  
 
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`, {
         method: 'POST',
@@ -146,6 +144,40 @@ export const chapterService = {
     } catch (error: any) {
       console.error('Erreur lors de la mise à jour du contenu:', error);
       throw new Error(error.message || "Une erreur est survenue lors de la mise à jour du contenu");
+    }
+  },
+
+  async getById(chapterId: string) {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.getById(chapterId)}`, {
+        method: 'GET',
+        headers,
+      });
+
+      const responseText = await response.text();
+
+      if (!response.ok) {
+        throw new Error(`Erreur ${response.status}: ${responseText}`);
+      }
+
+      const data = JSON.parse(responseText);
+      
+      if (Array.isArray(data)) {
+        if (data.length === 0) {
+          throw new Error('Aucun chapitre trouvé');
+        }
+        return data[0];
+      } else if (data.data) {
+        return data.data;
+      } else if (typeof data === 'object') {
+        return data;
+      }
+
+      throw new Error('Format de réponse invalide');
+    } catch (error) {
+      console.error('Erreur lors de la récupération du chapitre:', error);
+      throw error;
     }
   }
 }; 

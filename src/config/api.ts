@@ -1,4 +1,3 @@
-import { update } from "lodash";
 import { Platform } from 'react-native';
 
 export const API_CONFIG = {
@@ -45,6 +44,7 @@ export const ENDPOINTS = {
   },
   chapters: {
     getByBookId: (bookId: string) => `/chapters/book/${bookId}`,
+    getById: (id: string) => `/chapters/${id}`,
     create: '/chapters/create',
     update: (id: string) => `/chapters/${id}`,
     delete: (id: string) => `/chapters/${id}`,
@@ -67,5 +67,14 @@ export const ENDPOINTS = {
     update: (id: string) => `/comments/${id}`,
     getOne: (id: string) => `/comments/${id}`,
     getAllCommentByBookContent: (bookContentId: string) => `/comments?bookContent_id=${bookContentId}`,
+  },
+  myreadings: {
+    getAll: '/myreadings',
+    create: '/myreadings',
+    update: (id: string) => `/myreadings/${id}`,
+    delete: (id: string) => `/myreadings/${id}`,
+    getbyuser: (userId: string) => `/myreadings/user/${userId}`,
+    getbyuserverified: (userId: string) => `/myreadings/user/${userId}/verified`,
+    changeverified: (id: string) => `/myreadings/${id}/toggle-verify`,
   },
 }; 
