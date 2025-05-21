@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -6,6 +6,8 @@ import { ChapterForm } from '../atoms/ChapterForm';
 import { useCreateChapter } from '../hooks/useCreateChapter';
 import { RootStackParamList } from '../navigation/types';
 import { Ionicons } from '@expo/vector-icons';
+import { chapterService } from '../services/api/chapters';
+import { API_CONFIG } from '../config/api';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
@@ -19,6 +21,33 @@ export const CreateChapterBoard: React.FC<CreateChapterBoardProps> = ({ bookId, 
   const { createChapter, createBookContent, isLoading, error } = useCreateChapter();
   const [chapterTitle, setChapterTitle] = useState('');
   const [content, setContent] = useState('');
+  const [availableOrder, setAvailableOrder] = useState<number>(1);
+
+  useEffect(() => {
+    const fetchAvailableOrder = async () => {
+      try {
+        const numericBookId = parseInt(bookId, 10);
+        if (isNaN(numericBookId)) return;
+
+        // Récupérer tous les chapitres du livre
+        const response = await fetch(`${API_CONFIG.baseURL}/chapters/book/${numericBookId}`);
+        if (response.ok) {
+          const chapters = await response.json();
+          
+          // Trouver l'ordre maximum
+          const maxOrder = chapters.reduce((max: number, chapter: any) => 
+            Math.max(max, chapter.order || 0), 0);
+          
+          // L'ordre disponible est l'ordre maximum + 1
+          setAvailableOrder(maxOrder + 1);
+        }
+      } catch (err) {
+        console.error('Erreur lors de la récupération de l\'ordre disponible:', err);
+      }
+    };
+
+    fetchAvailableOrder();
+  }, [bookId]);
 
   const handleSave = async () => {
     if (!chapterTitle.trim()) {
@@ -32,8 +61,12 @@ export const CreateChapterBoard: React.FC<CreateChapterBoardProps> = ({ bookId, 
         throw new Error('ID du livre invalide');
       }
 
-      // Créer le chapitre avec l'ordre spécifié
-      const chapter = await createChapter(numericBookId, chapterTitle, nextOrder);
+      // Créer le chapitre avec l'ordre disponible
+      const chapter = await createChapter(numericBookId, chapterTitle, availableOrder);
+      
+      if (!chapter || !chapter.id) {
+        throw new Error('Erreur lors de la création du chapitre : ID non trouvé');
+      }
 
       // Créer le contenu si du texte a été saisi
       if (content.trim()) {

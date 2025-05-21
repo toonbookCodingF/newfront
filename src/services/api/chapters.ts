@@ -48,6 +48,7 @@ export const chapterService = {
         title: params.title,
         book_id: params.book_id,
         order,
+        status: params.status ?? 'draft'
       };
 
       const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.create}`, {
@@ -66,7 +67,10 @@ export const chapterService = {
       }
 
       const result = JSON.parse(responseText);
-      return result;
+      if (!result.data || !result.data.id) {
+        throw new Error('ID du chapitre non trouvé dans la réponse');
+      }
+      return result.data;
     } catch (error: any) {
       console.error('Service - Erreur complète:', error);
       throw new Error(error.message || "Une erreur est survenue lors de la création du chapitre");
