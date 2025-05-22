@@ -1,6 +1,6 @@
 import { API_CONFIG, ENDPOINTS } from '../../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { handleApiError, handleNetworkError } from '../../Errorhandler';
+import { wrapFetchWithNetworkError } from '../../utils/networkUtils';
 
 type CreateChapterParams = {
   title: string;
@@ -30,6 +30,16 @@ export type UpdateContentParams = {
   type?: string;
 };
 
+export interface Chapter {
+  id: number;
+  title: string;
+  book_id: number;
+  status: string;
+  order: number;
+  createdat: string;
+  updated_at: string;
+}
+
 const getAuthHeaders = async () => {
   const token = await AsyncStorage.getItem('token');
   return {
@@ -39,148 +49,121 @@ const getAuthHeaders = async () => {
 };
 
 export const chapterService = {
-  async createChapter(params: CreateChapterParams) {
+  async getByBookId(bookId: number): Promise<Chapter[]> {
     try {
       const headers = await getAuthHeaders();
-     
-      const order = params.order ?? 1;
-      const requestBody = {
-        title: params.title,
-        book_id: params.book_id,
-        order,
-        status: params.status ?? 'draft'
-      };
+      const response = await wrapFetchWithNetworkError(
+        `${API_CONFIG.baseURL}${ENDPOINTS.chapters.getByBookId(bookId.toString())}`,
+        { headers }
+      );
+      const data = await response.json();
+      return data || [];
+    } catch (error) {
+      throw error;
+    }
+  },
 
-      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.create}`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(requestBody),
-      });
+  async getById(id: number): Promise<Chapter> {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await wrapFetchWithNetworkError(
+        `${API_CONFIG.baseURL}${ENDPOINTS.chapters.getById(id.toString())}`,
+        { headers }
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-      const responseText = await response.text();
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Token manquant ou invalide');
+  async create(params: CreateChapterParams): Promise<Chapter> {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await wrapFetchWithNetworkError(
+        `${API_CONFIG.baseURL}${ENDPOINTS.chapters.create}`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(params)
         }
-        throw new Error(`Erreur ${response.status}: ${responseText}`);
-      }
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
 
-      const result = JSON.parse(responseText);
-      if (!result.data || !result.data.id) {
-        throw new Error('ID du chapitre non trouvé dans la réponse');
-      }
-      return result.data;
-    } catch (error: any) {
-      console.error('Service - Erreur complète:', error);
-      throw new Error(error.message || "Une erreur est survenue lors de la création du chapitre");
+  async update(id: number, params: UpdateChapterParams): Promise<Chapter> {
+    try {
+      const headers = await getAuthHeaders();
+      const response = await wrapFetchWithNetworkError(
+        `${API_CONFIG.baseURL}${ENDPOINTS.chapters.update(id.toString())}`,
+        {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(params)
+        }
+      );
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async delete(id: number): Promise<void> {
+    try {
+      const headers = await getAuthHeaders();
+      await wrapFetchWithNetworkError(
+        `${API_CONFIG.baseURL}${ENDPOINTS.chapters.delete(id.toString())}`,
+        {
+          method: 'DELETE',
+          headers
+        }
+      );
+    } catch (error) {
+      throw error;
     }
   },
 
   async createBookContent(params: CreateContentParams) {
     try {
       const headers = await getAuthHeaders();
-
-      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          content: params.content,
-          chapter_id: params.chapter_id,
-          order: params.order ?? 1,
-          image: params.image || null,
-          type: params.type || "text",
-        }),
-      });
-
-      const responseText = await response.text();
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error('Token manquant ou invalide');
+      const response = await wrapFetchWithNetworkError(
+        `${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.create}`,
+        {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({
+            content: params.content,
+            chapter_id: params.chapter_id,
+            order: params.order ?? 1,
+            image: params.image || null,
+            type: params.type || "text",
+          }),
         }
-        throw new Error(`Erreur ${response.status}: ${responseText}`);
-      }
-
-      return JSON.parse(responseText);
-    } catch (error: any) {
-      console.error('Erreur lors de la création du contenu:', error);
-      throw new Error(error.message || "Une erreur est survenue lors de la création du contenu");
-    }
-  },
-
-  async updateChapter(chapterId: number, params: UpdateChapterParams) {
-    try {
-      const headers = await getAuthHeaders();
-      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.update(chapterId.toString())}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(params),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur lors de la mise à jour du chapitre');
-      }
-
+      );
       return await response.json();
-    } catch (error: any) {
-      console.error('Erreur lors de la mise à jour du chapitre:', error);
-      throw new Error(error.message || "Une erreur est survenue lors de la mise à jour du chapitre");
+    } catch (error) {
+      throw error;
     }
   },
 
   async updateContent(contentId: number, params: UpdateContentParams) {
     try {
       const headers = await getAuthHeaders();
-      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.update(contentId.toString())}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(params),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Erreur lors de la mise à jour du contenu');
-      }
-
-      return await response.json();
-    } catch (error: any) {
-      console.error('Erreur lors de la mise à jour du contenu:', error);
-      throw new Error(error.message || "Une erreur est survenue lors de la mise à jour du contenu");
-    }
-  },
-
-  async getById(chapterId: string) {
-    try {
-      const headers = await getAuthHeaders();
-      const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.chapters.getById(chapterId)}`, {
-        method: 'GET',
-        headers,
-      });
-
-      const responseText = await response.text();
-
-      if (!response.ok) {
-        throw new Error(`Erreur ${response.status}: ${responseText}`);
-      }
-
-      const data = JSON.parse(responseText);
-      
-      if (Array.isArray(data)) {
-        if (data.length === 0) {
-          throw new Error('Aucun chapitre trouvé');
+      const response = await wrapFetchWithNetworkError(
+        `${API_CONFIG.baseURL}${ENDPOINTS.paragraphs.update(contentId.toString())}`,
+        {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(params),
         }
-        return data[0];
-      } else if (data.data) {
-        return data.data;
-      } else if (typeof data === 'object') {
-        return data;
-      }
-
-      throw new Error('Format de réponse invalide');
+      );
+      return await response.json();
     } catch (error) {
-      console.error('Erreur lors de la récupération du chapitre:', error);
       throw error;
     }
   }
