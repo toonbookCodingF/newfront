@@ -1,4 +1,5 @@
 import { API_CONFIG, ENDPOINTS } from '../../config/api';
+import { wrapFetchWithNetworkError } from '../../utils/networkUtils';
 
 export interface RegisterData {
     email: string;
@@ -16,11 +17,14 @@ const handleResponse = async (response: Response) => {
 
 export const registerApi = {
     register: async (data: RegisterData) => {
-        const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.auth.register}`, {
-            method: 'POST',
-            headers: API_CONFIG.headers,
-            body: JSON.stringify(data),
-        });
-        return handleResponse(response);
+        const response = await wrapFetchWithNetworkError(
+            `${API_CONFIG.baseURL}${ENDPOINTS.auth.register}`,
+            {
+                method: 'POST',
+                headers: API_CONFIG.headers,
+                body: JSON.stringify(data),
+            }
+        );
+        return response.json();
     },
 }; 

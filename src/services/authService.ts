@@ -49,8 +49,10 @@ export const authService = {
       }
       return data;
     } catch (error) {
-      console.error('Login error:', error);
-      throw new Error('Erreur de connexion au serveur');
+      if (error instanceof TypeError) {
+        throw new Error('Pas de connexion internet');
+      }
+      throw new Error('Erreur de connexion au serveur. Veuillez réessayer plus tard.');
     }
   },
 

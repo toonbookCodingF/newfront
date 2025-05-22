@@ -1,5 +1,6 @@
 import { API_CONFIG, ENDPOINTS } from '../../config/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { wrapFetchWithNetworkError } from '../../utils/networkUtils';
 
 export interface MyReading {
     id: number;
@@ -30,42 +31,30 @@ export const myReadingsService = {
             const userId = decodedToken.id;
 
             // Vérifier si une lecture existe déjà
-            const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.myreadings.getbyuser(userId.toString())}`, {
-                headers
-            });
+            const checkResponse = await wrapFetchWithNetworkError(
+                `${API_CONFIG.baseURL}${ENDPOINTS.myreadings.getbyuser(userId.toString())}`,
+                { headers }
+            );
 
-            if (response.ok) {
-                const data = await response.json();
-                const existingReadings = data || [];
-                const existingReading = existingReadings.find((reading: MyReading) => reading.book_id === bookId);
+            const data = await checkResponse.json();
+            const existingReadings = data || [];
+            const existingReading = existingReadings.find((reading: MyReading) => reading.book_id === bookId);
 
-                if (existingReading) {
-                    return existingReading;
-                }
+            if (existingReading) {
+                return existingReading;
             }
 
-            const createResponse = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.myreadings.create}`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({
-                    book_id: bookId,
-                    user_id: userId
-                })
-            });
-
-            if (!createResponse.ok) {
-                const errorText = await createResponse.text();
-                let errorMessage = `Erreur lors de la création: ${createResponse.status}`;
-                try {
-                    const errorData = JSON.parse(errorText);
-                    if (errorData.message) {
-                        errorMessage = errorData.message;
-                    }
-                } catch (e) {
-                    // Si le parsing JSON échoue, on garde le message d'erreur par défaut
+            const createResponse = await wrapFetchWithNetworkError(
+                `${API_CONFIG.baseURL}${ENDPOINTS.myreadings.create}`,
+                {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        book_id: bookId,
+                        user_id: userId
+                    })
                 }
-                throw new Error(errorMessage);
-            }
+            );
 
             const createData = await createResponse.json();
             
@@ -89,18 +78,14 @@ export const myReadingsService = {
                 throw new Error('Non authentifié');
             }
 
-            const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.myreadings.getbyuser(userId.toString())}`, {
-                headers
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la récupération des lectures: ${response.status}`);
-            }
+            const response = await wrapFetchWithNetworkError(
+                `${API_CONFIG.baseURL}${ENDPOINTS.myreadings.getbyuser(userId.toString())}`,
+                { headers }
+            );
 
             const data = await response.json();
             return data || [];
         } catch (error) {
-            console.error('Erreur lors de la récupération des lectures:', error);
             throw error;
         }
     },
@@ -112,18 +97,14 @@ export const myReadingsService = {
                 throw new Error('Non authentifié');
             }
 
-            const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.myreadings.getbyuserverified(userId.toString())}`, {
-                headers
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la récupération des favoris: ${response.status}`);
-            }
+            const response = await wrapFetchWithNetworkError(
+                `${API_CONFIG.baseURL}${ENDPOINTS.myreadings.getbyuserverified(userId.toString())}`,
+                { headers }
+            );
 
             const data = await response.json();
             return data || [];
         } catch (error) {
-            console.error('Erreur lors de la récupération des favoris:', error);
             throw error;
         }
     },
@@ -135,19 +116,17 @@ export const myReadingsService = {
                 throw new Error('Non authentifié');
             }
 
-            const response = await fetch(`${API_CONFIG.baseURL}${ENDPOINTS.myreadings.changeverified(readingId.toString())}`, {
-                method: 'PATCH',
-                headers
-            });
-
-            if (!response.ok) {
-                throw new Error(`Erreur lors de la mise à jour: ${response.status}`);
-            }
+            const response = await wrapFetchWithNetworkError(
+                `${API_CONFIG.baseURL}${ENDPOINTS.myreadings.changeverified(readingId.toString())}`,
+                {
+                    method: 'PATCH',
+                    headers
+                }
+            );
 
             const data = await response.json();
             return data;
         } catch (error) {
-            console.error('Erreur lors de la mise à jour:', error);
             throw error;
         }
     }
