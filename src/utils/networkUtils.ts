@@ -1,16 +1,28 @@
-import { Alert } from 'react-native';
+import { Alert, Platform } from 'react-native';
 
 const TIMEOUT_DURATION = 15000; // 15 secondes
 
+const showAlert = (title: string, message: string) => {
+  // S'assurer que l'alerte est affichée sur le thread principal
+  setTimeout(() => {
+    Alert.alert(
+      title,
+      message,
+      [{ text: 'OK', onPress: () => {} }],
+      { cancelable: true }
+    );
+  }, 100);
+};
+
 export const showNoInternetAlert = () => {
-  Alert.alert(
+  showAlert(
     'Erreur de connexion',
     'Pas de connexion internet. Veuillez vérifier votre connexion et réessayer.'
   );
 };
 
 export const showServerErrorAlert = () => {
-  Alert.alert(
+  showAlert(
     'Erreur serveur',
     'Le serveur ne répond pas. Veuillez réessayer plus tard.'
   );

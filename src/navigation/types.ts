@@ -45,8 +45,6 @@ export type MainTabParamList = {
   Library: undefined;
   Lecture: undefined;
   Search: undefined;
-  Profile: undefined;
-  Settings: undefined;
 };
 
 export type LibraryStackParamList = {

@@ -182,14 +182,15 @@ export const OeuvreBoard: React.FC<OeuvreBoardProps> = ({ id, fromMyBooks = fals
       }
 
       const updateData = {
-        title,
-        description,
-        category_id: parseInt(category),
-        coverimage: cover,
+        title: title.trim(),
+        description: description || book?.description || '',
+        category_id: category ? parseInt(category) : book?.category_id,
+        coverimage: cover || book?.coverimage,
       };
 
       await updateBook(id, updateData);
       setTempCoverPreview(undefined);
+      await refetch();
       Alert.alert('Succès', 'Le livre a été mis à jour avec succès');
       setIsEditing(false);
     } catch (err) {

@@ -88,26 +88,6 @@ export const MainNavigator: React.FC = () => {
           ),
         }}
       />
-      <Tab.Screen
-        name="Profile"
-        component={ProfilePage}
-        options={{
-          title: 'Profil',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person" size={size} color={color} />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Settings"
-        component={SettingsPage}
-        options={{
-          title: 'Paramètres',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings" size={size} color={color} />
-          ),
-        }}
-      />
     </Tab.Navigator>
   );
 }; 
