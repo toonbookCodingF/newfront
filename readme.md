@@ -1,0 +1,67 @@
+# ToonBook
+
+Une application mobile développée avec React Native et Expo pour la gestion, le partage et la création d'oeuvre graphique et/ou littéraire 
+
+
+
+## 🚀 Technologies utilisées
+
+- React Native
+- Expo
+- TypeScript
+- React Navigation
+- Expo Image Picker
+- React Native Reanimated
+- Jest (pour les tests)
+
+## 📋 Prérequis
+
+- Node.js (version recommandée : la plus récente LTS)
+- npm ou yarn
+- Expo CLI
+- Un émulateur Android/iOS ou un appareil physique
+
+## 🛠 Installation
+
+ Installez les dépendances :
+```bash
+npm install
+# ou
+yarn install
+```
+
+ Lancez l'application :
+```bash
+npm start
+# ou
+yarn start
+```
+
+## 📱 Commandes disponibles
+
+- `npm start` ou `yarn start` : Démarre l'application en mode développement
+- `npm run android` ou `yarn android` : Lance l'application sur Android
+- `npm run ios` ou `yarn ios` : Lance l'application sur iOS
+- `npm run web` ou `yarn web` : Lance l'application en version web
+- `npm test` ou `yarn test` : Lance les tests
+
+## 🧪 Tests
+
+Le projet utilise Jest pour les tests. Pour exécuter les tests :
+
+```bash
+npm test
+# ou
+yarn test
+```
+
+## 📁 Structure du projet
+
+```
+newfront/
+├── app/              # Composants et écrans principaux
+├── assets/          # Images et ressources statiques
+├── src/             # Code source principal
+├── tests/           # Tests unitaires et d'intégration
+└── ...
+```
